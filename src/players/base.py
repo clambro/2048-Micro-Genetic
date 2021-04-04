@@ -34,7 +34,7 @@ class Player(ABC):
         if display:
             ax = game.display_board()
         while not game.game_over:
-            action = self.choose_action(game)
+            action = self._choose_action(game)
             if action == Action.QUIT:
                 break
             game.move(action)
@@ -62,6 +62,6 @@ class Player(ABC):
             self.play_game(False)
 
     @abstractmethod
-    def choose_action(self, game):
+    def _choose_action(self, game):
         """"""
         pass

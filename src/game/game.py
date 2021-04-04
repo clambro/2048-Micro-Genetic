@@ -25,27 +25,11 @@ class Game:
     def __init__(self):
         """Sets up the board and clears the key-state."""
         self.board = np.zeros((4, 4), dtype=np.int)
-        self.add_tile()
-        self.add_tile()
+        self._add_tile()
+        self._add_tile()
         self.score = 0
         self.highest_tile = 0
         self.game_over = False
-
-    def add_tile(self):
-        """Adds a 2 or 4 tile randomly to the current game board and checks for game over."""
-        # In 2048, there is a 10% chance of a 4 being added instead of a 2.
-        if np.random.random() > 0.9:
-            val = 2
-        else:
-            val = 1
-        board = self.board.reshape(16)
-        valid_pos = [i for i in range(16) if not board[i]]
-        pos = np.random.choice(valid_pos)
-        board[pos] = val
-        self.board = board.reshape((4, 4))
-        self.highest_tile = 2 ** np.max(self.board)
-        if self.board.all() and not self.get_legal_moves():
-            self.game_over = True
 
     def get_legal_moves(self):
         """Return True if there are no legal moves, else False."""
@@ -62,22 +46,6 @@ class Game:
                 self.score = int(np.copy(orig_score))
                 legal_moves.append(direction)
         return legal_moves
-
-    def slide_left(self):
-        """Slides tiles left one column at a time, but doesn't merge them."""
-        for row in range(4):
-            new_row = [i for i in self.board[row, :] if i != 0]
-            new_row = new_row + [0] * (4 - len(new_row))
-            self.board[row, :] = np.array(new_row)
-
-    def merge_left(self):
-        """Merge tiles and increase score according to 2048 rules."""
-        for i in range(4):
-            for j in range(3):
-                if self.board[i, j] == self.board[i, j+1] != 0:
-                    self.board[i, j] = self.board[i, j] + 1
-                    self.board[i, j+1] = 0
-                    self.score += 2**self.board[i, j]
 
     def move(self, direction, add_tile=True):
         """Execute a move in the given direction.
@@ -103,16 +71,48 @@ class Game:
             rot = -1
         self.board = np.rot90(self.board, rot)
         # Slide, merge, slide pattern reflects the official 2048 rules
-        self.slide_left()
-        self.merge_left()
-        self.slide_left()
+        self._slide_left()
+        self._merge_left()
+        self._slide_left()
         self.board = np.rot90(self.board, -1 * rot)
 
         # If the board is unchanged by the move, then it was illegal.
         move_was_legal = not np.array_equal(self.board, prev_board)
         if move_was_legal and add_tile:
-            self.add_tile()
+            self._add_tile()
         return move_was_legal
+
+    def _slide_left(self):
+        """Slides tiles left one column at a time, but doesn't merge them."""
+        for row in range(4):
+            new_row = [i for i in self.board[row, :] if i != 0]
+            new_row = new_row + [0] * (4 - len(new_row))
+            self.board[row, :] = np.array(new_row)
+
+    def _merge_left(self):
+        """Merge tiles and increase score according to 2048 rules."""
+        for i in range(4):
+            for j in range(3):
+                if self.board[i, j] == self.board[i, j+1] != 0:
+                    self.board[i, j] = self.board[i, j] + 1
+                    self.board[i, j+1] = 0
+                    self.score += 2**self.board[i, j]
+
+    def _add_tile(self):
+        """Adds a 2 or 4 tile randomly to the current game board and checks for game over."""
+        # In 2048, there is a 10% chance of a 4 being added instead of a 2.
+        if np.random.random() > 0.9:
+            val = 2
+        else:
+            val = 1
+        board = self.board.reshape(16)
+        valid_pos = [i for i in range(16) if not board[i]]
+        pos = np.random.choice(valid_pos)
+        board[pos] = val
+        self.board = board.reshape((4, 4))
+        self.highest_tile = 2 ** np.max(self.board)
+        if self.board.all() and not self.get_legal_moves():
+            self.game_over = True
 
     def display_board(self, axes=None):
         """Display the board as a matplotlib figure.

@@ -1,6 +1,4 @@
 from game.action import Action
-from game.game import Game
-import matplotlib.pyplot as plt
 from players.base import Player
 from pynput import keyboard
 import time
@@ -12,15 +10,16 @@ class ManualPlayer(Player):
     """
 
     def __init__(self):
-        """"""
         super().__init__()
 
     def play_game(self, display=True):
         """"""
+        if not display:
+            raise ValueError('You need to display the board to play a manual game!')
         super().play_game(True)
 
     @staticmethod
-    def choose_action(game):
+    def _choose_action(game):
         """Reads a key from keyboard inputs.
 
         Returns

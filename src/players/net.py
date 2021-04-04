@@ -46,27 +46,33 @@ class Net(Player):
                     else dad.chromosome[i]
                     for i in range(len(mom.chromosome))
                     ])
-            self.mutate()
+            self._mutate()
         else:
             self.chromosome = np.array([
                     dad.chromosome[i] if np.random.random() > 0.4
                     else mom.chromosome[i]
                     for i in range(len(mom.chromosome))
                     ])
-            self.mutate()
+            self._mutate()
 
-    def mutate(self):
+    def _mutate(self):
         """Add random mutations to 2% of net's chromosome."""
         mutation = np.array([np.random.randn()/10 if np.random.random() < 0.02
                              else 0 for _ in range(len(self.chromosome))])
         self.chromosome += mutation
 
-    @staticmethod
-    def relu(x):
-        """Leaky ReLU"""
-        return np.maximum(0.01*x, x)
+    def _choose_action(self, game):
+        """"""
+        legal_moves = game.get_legal_moves()
+        best_move = None
+        highest_priority = -np.inf
+        for direction, priority in zip(DIRECTIONS, self._predict_move(game.board)):
+            if direction in legal_moves and priority > highest_priority:
+                best_move = direction
+                highest_priority = highest_priority
+        return best_move
 
-    def make_move(self, board):
+    def _predict_move(self, board):
         """Input board into net and feed-forward to get a move direction.
 
         Parameters
@@ -83,17 +89,7 @@ class Net(Player):
         x = np.append(1, x)  # Add bias
         w_xh = self.chromosome[:272].reshape((17, 16))
         w_hy = self.chromosome[272:].reshape((17, 4))
-        h = self.relu(x @ w_xh)
+        h = x @ w_xh
+        h = np.maximum(0.01 * h, h)  # Leaky ReLU
         h = np.append(1, h)  # Add bias
         return (h @ w_hy).tolist()  # No non-linearity needed. We only care about order.
-
-    def choose_action(self, game):
-        """"""
-        legal_moves = game.get_legal_moves()
-        best_move = None
-        highest_priority = -np.inf
-        for direction, priority in zip(DIRECTIONS, self.make_move(game.board)):
-            if direction in legal_moves and priority > highest_priority:
-                best_move = direction
-                highest_priority = highest_priority
-        return best_move

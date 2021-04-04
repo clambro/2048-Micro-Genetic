@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 from players import net
 import numpy as np
-from os import remove
-from os.path import isfile
 
 
 class Population:
@@ -36,7 +34,7 @@ class Population:
             self.genepool = elite if elite is not None else []
 
         if parents is not None:
-            moms, dads = self.tournament(parents)
+            moms, dads = self._tournament(parents)
             for i in range(8):
                 self.genepool.append(net.Net(gen, moms[i], dads[i]))
         else:
@@ -45,7 +43,7 @@ class Population:
                 self.genepool.append(net.Net(gen))
 
     @staticmethod
-    def tournament(parents):
+    def _tournament(parents):
         """Tournament selection to generate pairs of parents.
 
         The net with the highest score is selected to be a parent with probability p, then second highest p*(p-1), third
@@ -88,18 +86,6 @@ class Population:
         for n in self.genepool:
             n.play_multiple_games(games)
 
-    def save_generation(self):
-        """Write the top 2 nets from every 20th generation to file. Assumes list is sorted by score.
-
-        Save file from 20 generations ago will be deleted if it exists.
-        """
-        if not self.generation % 20 and self.generation != 0:
-            name = 'Generation' + str(self.generation)
-            np.save(name, self.genepool[:2])
-            old_name = 'Generation' + str(self.generation-20) + '.npy'
-            if isfile(old_name):
-                remove(old_name)
-
     def sort_by_score(self):
         """Sort the genepool in descending order by each net's score."""
         self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
@@ -138,7 +124,9 @@ def train_population(final_gen, initial_gen=0, elite=None):
         print('Playing games for generation', gen, 'of', final_gen)
         pop.play_games()
         pop.sort_by_score()
-        pop.save_generation()
+        if not pop.generation % 20 and pop.generation != 0:
+            name = 'Generation' + str(pop.generation)
+            np.save(name, pop.genepool[:2])
 
         top_scores.append(pop.genepool[0].get_avg_score())
 
