@@ -18,8 +18,6 @@ class Game:
         The current score.
     highest_tile : int
         The highest-value tile on the board.
-    moves : int
-        The number of moves made in the current game.
     game_over : bool
         Whether or not the game is over.
     """
@@ -31,7 +29,6 @@ class Game:
         self.add_tile()
         self.score = 0
         self.highest_tile = 0
-        self.moves = 0
         self.game_over = False
 
     def add_tile(self):
@@ -46,25 +43,25 @@ class Game:
         pos = np.random.choice(valid_pos)
         board[pos] = val
         self.board = board.reshape((4, 4))
-        if self.board.all() and not self.has_legal_moves():
+        self.highest_tile = 2 ** np.max(self.board)
+        if self.board.all() and not self.get_legal_moves():
             self.game_over = True
 
-    def has_legal_moves(self):
+    def get_legal_moves(self):
         """Return True if there are no legal moves, else False."""
         if self.game_over:
-            return False
+            return []
         orig_board = np.copy(self.board)
-        orig_score = np.copy(self.score)
+        orig_score = int(np.copy(self.score))
+        legal_moves = []
         for direction in DIRECTIONS:
-            move_was_legal = self.move(direction)
+            move_was_legal = self.move(direction, add_tile=False)
             if move_was_legal:
-                # Reset parameters that may have changed in move.
-                self.board = orig_board
-                self.score = orig_score
-                self.moves -= 1
-                self.game_over = False
-                return True
-        return False
+                # Reset parameters that may have changed during the move.
+                self.board = np.copy(orig_board)
+                self.score = int(np.copy(orig_score))
+                legal_moves.append(direction)
+        return legal_moves
 
     def slide_left(self):
         """Slides tiles left one column at a time, but doesn't merge them."""
@@ -82,7 +79,7 @@ class Game:
                     self.board[i, j+1] = 0
                     self.score += 2**self.board[i, j]
 
-    def move(self, direction):
+    def move(self, direction, add_tile=True):
         """Execute a move in the given direction.
 
         Rotate the board so that key points leftwards, move left, then rotate back to the original position.
@@ -113,9 +110,8 @@ class Game:
 
         # If the board is unchanged by the move, then it was illegal.
         move_was_legal = not np.array_equal(self.board, prev_board)
-        if move_was_legal:
+        if move_was_legal and add_tile:
             self.add_tile()
-            self.moves += 1
         return move_was_legal
 
     def display_board(self, axes=None):

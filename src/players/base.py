@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from game.action import Action
 from game.game import Game
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Player(ABC):
@@ -13,6 +14,18 @@ class Player(ABC):
         """"""
         self.scores = []
         self.highest_tiles = []
+
+    def get_avg_score(self):
+        """"""
+        return np.exp(np.mean(np.log(self.scores)))
+
+    def get_avg_highest_tile(self):
+        """"""
+        return np.exp(np.mean(np.log(self.highest_tiles)))
+
+    def get_num_games_played(self):
+        """"""
+        return len(self.scores)
 
     def play_game(self, display):
         """"""

@@ -9,4 +9,4 @@ class Action(Enum):
     QUIT = auto()
 
 
-DIRECTIONS = [Action.LEFT, Action.RIGHT, Action.DOWN, Action.UP]
+DIRECTIONS = [Action.LEFT, Action.RIGHT, Action.UP, Action.DOWN]

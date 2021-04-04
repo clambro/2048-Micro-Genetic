@@ -1,9 +1,9 @@
 from game.action import DIRECTIONS
-import game
 import numpy as np
+from players.base import Player
 
 
-class Net:
+class Net(Player):
     """A simple feed-forward neural net to play 2048.
 
     Layers:
@@ -15,10 +15,6 @@ class Net:
     ----------
     generation : int
         Which generation the network belongs to.
-    score : float
-        The net's score geometrically averaged over the games it played.
-    highest_tile : float
-        The geometric mean of the highest tiles in all the games the net played.
     chromosome : ndarray
         A 340x1 numpy array containing the weights for the matrices. (16 inputs; 1 hidden layer of size 16, plus bias.
         17x16 matrix then 17x4 = 340 elements)
@@ -38,9 +34,8 @@ class Net:
         chromosome : Optional[ndarray]
             A 340x1 numpy array containing the network weights.
         """
+        super().__init__()
         self.generation = gen
-        self.score = 0
-        self.highest_tile = 0
         if chromosome:
             self.chromosome = chromosome
         elif not mom or not dad:
@@ -90,64 +85,29 @@ class Net:
         w_hy = self.chromosome[272:].reshape((17, 4))
         h = self.relu(x @ w_xh)
         h = np.append(1, h)  # Add bias
-        y = h @ w_hy  # No non-linearity needed. We only care about order.
-        moves = np.array(DIRECTIONS)
-        return moves[y.argsort()[::-1]]
+        return (h @ w_hy).tolist()  # No non-linearity needed. We only care about order.
 
-    def learn_game(self, games):
+    def choose_action(self, game):
+        """"""
+        legal_moves = game.get_legal_moves()
+        best_move = None
+        highest_priority = -np.inf
+        for direction, priority in zip(DIRECTIONS, self.make_move(game.board)):
+            if direction in legal_moves and priority > highest_priority:
+                best_move = direction
+                highest_priority = highest_priority
+        return best_move
+
+    def play_multiple_games(self, games):
         """Play games and calculate (geometric) average scores and highest tiles.
 
         Parameters
         ----------
         games: int
-            The number of games to average over.
+            The number of games to play.
         """
-        self.score = 1
-        self.highest_tile = 1
-        for i in range(games):
-            g = game.Game()
-            while not g.game_over:
-                keys = self.make_move(g.board)
-                board_copy = np.copy(g.board)
-                score_copy = np.copy(g.score)
-                for key in keys:
-                    g.process_key(key)
-                    if not g.last_move_illegal:
-                        break
-                    else:
-                        g.last_move_illegal = False
-                        g.board = board_copy
-                        g.score = score_copy.tolist()
-            self.score *= g.score**(1/games)
-            self.highest_tile *= g.highest_tile**(1/games)
-
-    def play_game(self, show=True):
-        """Play one game of 2048 with optional graphics.
-
-        Parameters
-        ----------
-        show : bool
-            If True, display an animated plot of the board.
-        """
-        g = game.Game()
-        if show:
-            ax = g.display_game()
-        while not g.game_over:
-            keys = self.make_move(g.board)
-            board_copy = np.copy(g.board)
-            score_copy = np.copy(g.score)
-            for key in keys:
-                g.process_key(key)
-                if not g.last_move_illegal:
-                    break
-                else:
-                    g.last_move_illegal = False
-                    g.board = board_copy
-                    g.score = score_copy.tolist()
-            if show:
-                ax = g.display_game(ax)
-        self.score = g.score
-        self.highest_tile = g.highest_tile
+        for _ in range(games):
+            super().play_game(False)
 
     def get_stats(self, games=10000):
         """Play games and analyze the net's highest tiles and average score.

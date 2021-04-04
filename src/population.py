@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import net
+from players import net
 import numpy as np
 from os import remove
 from os.path import isfile
