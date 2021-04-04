@@ -1,3 +1,4 @@
+from action import DIRECTIONS
 import game
 import numpy as np
 
@@ -90,7 +91,7 @@ class Net:
         h = self.relu(x @ w_xh)
         h = np.append(1, h)  # Add bias
         y = h @ w_hy  # No non-linearity needed. We only care about order.
-        moves = np.array([37, 38, 39, 40])  # [left, up, right, down]
+        moves = np.array(DIRECTIONS)
         return moves[y.argsort()[::-1]]
 
     def learn_game(self, games):
