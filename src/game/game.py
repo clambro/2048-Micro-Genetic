@@ -35,15 +35,10 @@ class Game:
         """Return True if there are no legal moves, else False."""
         if self.game_over:
             return []
-        orig_board = np.copy(self.board)
-        orig_score = int(np.copy(self.score))
         legal_moves = []
         for direction in DIRECTIONS:
-            move_was_legal = self._move(direction)
+            move_was_legal, _, _ = self._move(direction)
             if move_was_legal:
-                # Reset parameters that may have changed during the move.
-                self.board = np.copy(orig_board)
-                self.score = int(np.copy(orig_score))
                 legal_moves.append(direction)
         return legal_moves
 
@@ -57,10 +52,12 @@ class Game:
         """
         if self.game_over:
             return False
-        move_was_legal = self._move(direction)
+        move_was_legal, new_board, points_earned = self._move(direction)
         if move_was_legal:
+            self.board = new_board
             self._add_tile()
             self.highest_tile = 2 ** np.max(self.board)
+            self.score += points_earned
             if self.board.all() and not self.get_legal_moves():
                 self.game_over = True
         return move_was_legal
@@ -73,7 +70,7 @@ class Game:
         direction : Action
             The ordinal value of the key pressed.
         """
-        prev_board = np.copy(self.board)
+        new_board = np.copy(self.board)
         if direction == Action.LEFT:
             rot = 0
         elif direction == Action.UP:
@@ -82,31 +79,36 @@ class Game:
             rot = 2
         else:
             rot = -1
-        self.board = np.rot90(self.board, rot)
+        new_board = np.rot90(new_board, rot)
         # Slide, merge, slide pattern reflects the official 2048 rules
-        self._slide_left()
-        self._merge_left()
-        self._slide_left()
-        self.board = np.rot90(self.board, -1 * rot)
+        self._slide_left(new_board)
+        points_earned = self._merge_left(new_board)
+        self._slide_left(new_board)
+        new_board = np.rot90(new_board, -1 * rot)
 
         # If the board is unchanged by the move, then it was illegal.
-        return not np.array_equal(self.board, prev_board)
+        move_was_legal = not np.array_equal(self.board, new_board)
+        return move_was_legal, new_board, points_earned
 
-    def _slide_left(self):
+    @staticmethod
+    def _slide_left(board):
         """Slides tiles left one column at a time, but doesn't merge them."""
         for row in range(4):
-            new_row = [i for i in self.board[row, :] if i != 0]
+            new_row = [i for i in board[row, :] if i != 0]
             new_row = new_row + [0] * (4 - len(new_row))
-            self.board[row, :] = np.array(new_row)
+            board[row, :] = np.array(new_row)
 
-    def _merge_left(self):
+    @staticmethod
+    def _merge_left(board):
         """Merge tiles and increase score according to 2048 rules."""
+        points_earned = 0
         for i in range(4):
             for j in range(3):
-                if self.board[i, j] == self.board[i, j+1] != 0:
-                    self.board[i, j] = self.board[i, j] + 1
-                    self.board[i, j+1] = 0
-                    self.score += 2**self.board[i, j]
+                if board[i, j] == board[i, j+1] != 0:
+                    board[i, j] = board[i, j] + 1
+                    board[i, j+1] = 0
+                    points_earned += 2 ** board[i, j]
+        return points_earned
 
     def _add_tile(self):
         """Adds a 2 or 4 tile randomly to the current game board and checks for game over."""
