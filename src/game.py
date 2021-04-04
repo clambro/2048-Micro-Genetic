@@ -1,15 +1,16 @@
+from action import Action, DIRECTIONS
 import matplotlib.pyplot as plt
 import numpy as np
+from pynput import keyboard
 import time
-import win32api as wapi
 
 
 class Game:
     """A single game of 2048.
 
-    A game consists of a 4x4 board of tiles with integer values representing the log2 of the tile's value.  The tiles
+    A game consists of a 4x4 board of tiles with integer values representing the log2 of the tile's value. The tiles
     can be shifted up, down, left, or right, and when two tiles of the same value touch, they merge and their value is
-    doubled.  If the board is full and there are no legal moves, the game ends.
+    doubled. If the board is full and there are no legal moves, the game ends.
 
     Attributes
     ----------
@@ -37,9 +38,6 @@ class Game:
         self.moves = 0
         self.game_over = False
         self.last_move_illegal = False
-        for key in [37, 38, 39, 40, 81]:
-            # In order, [left, up, right, down, Q]
-            wapi.GetAsyncKeyState(key)
 
     def add_tile(self):
         """Adds a 2 or 4 tile randomly to the current game board."""
@@ -60,9 +58,8 @@ class Game:
         """Return True if there are no legal moves, else False."""
         orig_board = np.copy(self.board)
         orig_score = np.copy(self.score).tolist()
-        # Moves in order [left, up, right, down]
-        for key in [37, 38, 39, 40]:
-            self.move(key)
+        for direction in DIRECTIONS:
+            self.move(direction)
             self.board = orig_board
             self.score = orig_score
             if not self.last_move_illegal:
@@ -77,15 +74,22 @@ class Game:
 
         Returns
         -------
-        key : int
-            The ordinal value of the key pressed.
+        key : Action
+            The key pressed, represented as an Action.
         """
-        while True:
-            time.sleep(0.1)
-            for key in [37, 38, 39, 40, 81]:
-                # In order, [left, up, right, down, Q]
-                if wapi.GetAsyncKeyState(key):
-                    return key
+        with keyboard.Events() as events:
+            for event in events:
+                time.sleep(0.1)  # Add a small delay between reads to avoid multiple moves per key.
+                if event.key == keyboard.Key.left:
+                    return Action.LEFT
+                elif event.key == keyboard.Key.right:
+                    return Action.RIGHT
+                elif event.key == keyboard.Key.up:
+                    return Action.UP
+                elif event.key == keyboard.Key.down:
+                    return Action.DOWN
+                elif event.key == keyboard.Key.esc:
+                    return Action.QUIT
 
     def slide_left(self):
         """Slides tiles left one column at a time, but doesn't merge them."""
@@ -114,11 +118,11 @@ class Game:
             The ordinal value of the key pressed.
         """
         prev_board = np.copy(self.board)
-        if key == 37:
+        if key == Action.LEFT:
             rot = 0
-        elif key == 38:
+        elif key == Action.UP:
             rot = 1
-        elif key == 39:
+        elif key == Action.RIGHT:
             rot = 2
         else:
             rot = -1
@@ -140,8 +144,7 @@ class Game:
         key : int
             The ordinal value of the key pressed.
         """
-        # ord('Q') = 81.  Quit game.
-        if key == 81:
+        if key == Action.QUIT:
             self.game_over = True
         else:
             self.move(key)
@@ -188,4 +191,5 @@ class Game:
             self.last_move_illegal = False
             self.process_key(key)
             self.display_game(ax)
+        plt.close()
         print('Game Over')
