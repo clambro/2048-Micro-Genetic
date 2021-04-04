@@ -40,7 +40,7 @@ class Net(Player):
             self.chromosome = chromosome
         elif not mom or not dad:
             self.chromosome = np.random.uniform(-0.4, 0.4, 340)
-        elif mom.score > dad.score:
+        elif mom.get_avg_score() > dad.get_avg_score():
             self.chromosome = np.array([
                     mom.chromosome[i] if np.random.random() > 0.4
                     else dad.chromosome[i]
@@ -97,85 +97,3 @@ class Net(Player):
                 best_move = direction
                 highest_priority = highest_priority
         return best_move
-
-    def play_multiple_games(self, games):
-        """Play games and calculate (geometric) average scores and highest tiles.
-
-        Parameters
-        ----------
-        games: int
-            The number of games to play.
-        """
-        for _ in range(games):
-            super().play_game(False)
-
-    def get_stats(self, games=10000):
-        """Play games and analyze the net's highest tiles and average score.
-
-        Parameters
-        ----------
-        games : int
-            The number of games to play.
-
-        Returns
-        -------
-        scores : List[int]
-            The score in each game
-        tiles : List[int]
-            The highest tile in each game
-        """
-        dic = {}
-        scores = []
-        tiles = []
-        for i in range(games):
-            if not i % 100:
-                print('Playing game number', i)
-            self.play_game(False)
-            # Update tile count in dictionary
-            tile = self.highest_tile
-            if tile in dic:
-                dic[tile] = dic[tile] + 1
-            else:
-                dic[tile] = 1
-            # Take geometric mean of score and tile
-            scores.append(self.score)
-            tiles.append(self.highest_tile)
-        for key, value in sorted(dic.items(), key=lambda x: x[0]):
-            print(key, ':', np.round(100*value/games, 1), '%')
-        print('Average Score =', np.rint(np.exp(np.mean(np.log(scores)))))
-        return scores, tiles
-
-
-def test_random():
-    """Play one game for each of 10000 nets and get summary statistics.
-
-    Returns
-    -------
-    scores : List[int]
-        The score in each game
-    tiles : List[int]
-        The highest tile in each game
-    """
-    dic = {}
-    scores = []
-    tiles = []
-    for i in range(10000):
-        n = Net()
-        if not i % 100:
-            print('Playing game number', i)
-        n.play_game(False)
-        # Update tile count in dictionary
-        tile = n.highest_tile
-        if tile in dic:
-            dic[tile] = dic[tile] + 1
-        else:
-            dic[tile] = 1
-        # Take geometric mean of score and tile
-        scores.append(n.score)
-        tiles.append(n.highest_tile)
-    for key, value in sorted(dic.items(), key=lambda x: x[0]):
-        print(key, ':', np.round(value/100, 2), '%')
-    print('Average Score =', np.rint(np.exp(np.mean(np.log(scores)))))
-    print('Max Score =', max(scores))
-    print('Min Score =', min(scores))
-    return scores, tiles

@@ -3,6 +3,7 @@ from game.action import Action
 from game.game import Game
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import trange
 
 
 class Player(ABC):
@@ -44,6 +45,21 @@ class Player(ABC):
             print(f'Game Over. Final score was {game.score}. Highest tile was {game.highest_tile}.')
         self.scores.append(game.score)
         self.highest_tiles.append(game.highest_tile)
+
+    def play_multiple_games(self, games, progress_bar=False):
+        """Play games and calculate (geometric) average scores and highest tiles.
+
+        Parameters
+        ----------
+        games: int
+            The number of games to play.
+        """
+        if progress_bar:
+            iterator = trange(games)
+        else:
+            iterator = range(games)
+        for _ in iterator:
+            self.play_game(False)
 
     @abstractmethod
     def choose_action(self, game):

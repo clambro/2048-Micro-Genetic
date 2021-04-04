@@ -67,11 +67,11 @@ class Population:
         dads = []
         while len(moms) < 8:
             m1, m2, d1, d2 = np.random.choice(parents, 4)
-            if m1.score > m2.score:
+            if m1.get_avg_score() > m2.get_avg_score():
                 moms.append(m1)
             else:
                 moms.append(m2)
-            if d1.score > d2.score:
+            if d1.get_avg_score() > d2.get_avg_score():
                 dads.append(d1)
             else:
                 dads.append(d2)
@@ -86,7 +86,7 @@ class Population:
             The number of games each net should play.
         """
         for n in self.genepool:
-            n.learn_game(games=games)
+            n.play_multiple_games(games)
 
     def save_generation(self):
         """Write the top 2 nets from every 20th generation to file. Assumes list is sorted by score.
@@ -102,7 +102,7 @@ class Population:
 
     def sort_by_score(self):
         """Sort the genepool in descending order by each net's score."""
-        self.genepool.sort(key=lambda n: n.score, reverse=True)
+        self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
 
 
 def train_population(final_gen, initial_gen=0, elite=None):
@@ -140,7 +140,7 @@ def train_population(final_gen, initial_gen=0, elite=None):
         pop.sort_by_score()
         pop.save_generation()
 
-        top_scores.append(pop.genepool[0].score)
+        top_scores.append(pop.genepool[0].get_avg_score())
 
         elite = pop.genepool[:2]
 
@@ -150,7 +150,7 @@ def train_population(final_gen, initial_gen=0, elite=None):
             parents = pop.genepool
 
         print('Best net\'s generation =', pop.genepool[0].generation)
-        print('Best net\'s score =', np.rint(pop.genepool[0].score), '\n')
+        print('Best net\'s score =', np.rint(pop.genepool[0].get_avg_score()), '\n')
 
     plt.figure()
     plt.title('log_2(Score)')
@@ -179,8 +179,8 @@ def find_best(pop):
         The best network in pop's genepool.
     """
     pop.play_games(200)
-    score = [np.rint(i.score) for i in pop.genepool]
-    tile = [np.rint(i.highest_tile) for i in pop.genepool]
+    score = [np.rint(i.get_avg_score()) for i in pop.genepool]
+    tile = [np.rint(i.get_avg_highest_tile()) for i in pop.genepool]
     best = np.argmax(score)
 
     print(score)
