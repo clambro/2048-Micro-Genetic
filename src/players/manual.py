@@ -5,27 +5,51 @@ import time
 
 
 class ManualPlayer(Player):
-    """
-
-    """
+    """Play a game of 2048 using manual keyboard inputs."""
 
     def __init__(self):
         super().__init__()
 
     def play_game(self, display=True):
-        """"""
+        """Play a game of 2048.
+
+        Parameters
+        ----------
+        display : bool
+            Whether to display the graphics. Must be True for manual play.
+
+        Raises
+        ------
+        ValueError
+            If display is False.
+        """
         if not display:
             raise ValueError('You need to display the board to play a manual game!')
         super().play_game(True)
 
+    def play_multiple_games(self, num_games, progress_bar=False):
+        """Raises an exception since this cannot be done manually.
+
+        Raises
+        ------
+        TypeError
+            Multiple games without graphics cannot be played manually.
+        """
+        raise TypeError('Multiple games without graphics cannot be played manually.')
+
     @staticmethod
     def _choose_action(game):
-        """Reads a key from keyboard inputs.
+        """Reads an action from keyboard inputs.
+
+        Parameters
+        ----------
+        game : Game
+            The current game state. Unused.
 
         Returns
         -------
-        key : Action
-            The key pressed, represented as an Action.
+        Action
+            The action to take.
         """
         with keyboard.Events() as events:
             for event in events:

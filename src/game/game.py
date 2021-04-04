@@ -23,12 +23,12 @@ class Game:
     """
 
     def __init__(self):
-        """Sets up the board and clears the key-state."""
+        """Sets up the game state with two random tiles."""
         self.board = np.zeros((4, 4), dtype=np.int)
         self._add_tile()
         self._add_tile()
         self.score = 0
-        self.highest_tile = 0
+        self.highest_tile = 2 ** np.max(self.board)
         self.game_over = False
 
     def get_legal_moves(self):

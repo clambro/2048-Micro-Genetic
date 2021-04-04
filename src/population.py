@@ -133,7 +133,7 @@ def train_population(final_gen, initial_gen=0, elite=None):
         elite = pop.genepool[:2]
 
         if not gen % 10:
-            parents = []
+            parents = None
         else:
             parents = pop.genepool
 
