@@ -39,7 +39,7 @@ class Game:
         orig_score = int(np.copy(self.score))
         legal_moves = []
         for direction in DIRECTIONS:
-            move_was_legal = self.move(direction, add_tile=False)
+            move_was_legal = self._move(direction)
             if move_was_legal:
                 # Reset parameters that may have changed during the move.
                 self.board = np.copy(orig_board)
@@ -47,10 +47,8 @@ class Game:
                 legal_moves.append(direction)
         return legal_moves
 
-    def move(self, direction, add_tile=True):
+    def move(self, direction):
         """Execute a move in the given direction.
-
-        Rotate the board so that key points leftwards, move left, then rotate back to the original position.
 
         Parameters
         ----------
@@ -59,7 +57,22 @@ class Game:
         """
         if self.game_over:
             return False
+        move_was_legal = self._move(direction)
+        if move_was_legal:
+            self._add_tile()
+            self.highest_tile = 2 ** np.max(self.board)
+            if self.board.all() and not self.get_legal_moves():
+                self.game_over = True
+        return move_was_legal
 
+    def _move(self, direction):
+        """Rotate the board so that direction points leftwards, move left, then rotate back to the original position.
+
+        Parameters
+        ----------
+        direction : Action
+            The ordinal value of the key pressed.
+        """
         prev_board = np.copy(self.board)
         if direction == Action.LEFT:
             rot = 0
@@ -77,10 +90,7 @@ class Game:
         self.board = np.rot90(self.board, -1 * rot)
 
         # If the board is unchanged by the move, then it was illegal.
-        move_was_legal = not np.array_equal(self.board, prev_board)
-        if move_was_legal and add_tile:
-            self._add_tile()
-        return move_was_legal
+        return not np.array_equal(self.board, prev_board)
 
     def _slide_left(self):
         """Slides tiles left one column at a time, but doesn't merge them."""
@@ -110,9 +120,6 @@ class Game:
         pos = np.random.choice(valid_pos)
         board[pos] = val
         self.board = board.reshape((4, 4))
-        self.highest_tile = 2 ** np.max(self.board)
-        if self.board.all() and not self.get_legal_moves():
-            self.game_over = True
 
     def display_board(self, axes=None):
         """Display the board as a matplotlib figure.

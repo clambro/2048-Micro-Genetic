@@ -92,4 +92,4 @@ class Net(Player):
         h = x @ w_xh
         h = np.maximum(0.01 * h, h)  # Leaky ReLU
         h = np.append(1, h)  # Add bias
-        return (h @ w_hy).tolist()  # No non-linearity needed. We only care about order.
+        return h @ w_hy  # No non-linearity needed. We only care about order.
