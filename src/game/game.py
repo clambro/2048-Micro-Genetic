@@ -1,8 +1,6 @@
-from action import Action, DIRECTIONS
+from game.action import Action, DIRECTIONS
 import matplotlib.pyplot as plt
 import numpy as np
-from pynput import keyboard
-import time
 
 
 class Game:
@@ -24,8 +22,6 @@ class Game:
         The number of moves made in the current game.
     game_over : bool
         Whether or not the game is over.
-    last_move_illegal : bool
-        Whether or not the last attempted move was illegal.
     """
 
     def __init__(self):
@@ -37,10 +33,9 @@ class Game:
         self.highest_tile = 0
         self.moves = 0
         self.game_over = False
-        self.last_move_illegal = False
 
     def add_tile(self):
-        """Adds a 2 or 4 tile randomly to the current game board."""
+        """Adds a 2 or 4 tile randomly to the current game board and checks for game over."""
         # In 2048, there is a 10% chance of a 4 being added instead of a 2.
         if np.random.random() > 0.9:
             val = 2
@@ -51,45 +46,25 @@ class Game:
         pos = np.random.choice(valid_pos)
         board[pos] = val
         self.board = board.reshape((4, 4))
-        if self.board.all() and self.no_moves():
+        if self.board.all() and not self.has_legal_moves():
             self.game_over = True
 
-    def no_moves(self):
+    def has_legal_moves(self):
         """Return True if there are no legal moves, else False."""
+        if self.game_over:
+            return False
         orig_board = np.copy(self.board)
-        orig_score = np.copy(self.score).tolist()
+        orig_score = np.copy(self.score)
         for direction in DIRECTIONS:
-            self.move(direction)
-            self.board = orig_board
-            self.score = orig_score
-            if not self.last_move_illegal:
-                return False
-            else:
-                self.last_move_illegal = False
-        return True
-
-    @staticmethod
-    def read_key():
-        """Reads a key from keyboard inputs.
-
-        Returns
-        -------
-        key : Action
-            The key pressed, represented as an Action.
-        """
-        with keyboard.Events() as events:
-            for event in events:
-                time.sleep(0.1)  # Add a small delay between reads to avoid multiple moves per key.
-                if event.key == keyboard.Key.left:
-                    return Action.LEFT
-                elif event.key == keyboard.Key.right:
-                    return Action.RIGHT
-                elif event.key == keyboard.Key.up:
-                    return Action.UP
-                elif event.key == keyboard.Key.down:
-                    return Action.DOWN
-                elif event.key == keyboard.Key.esc:
-                    return Action.QUIT
+            move_was_legal = self.move(direction)
+            if move_was_legal:
+                # Reset parameters that may have changed in move.
+                self.board = orig_board
+                self.score = orig_score
+                self.moves -= 1
+                self.game_over = False
+                return True
+        return False
 
     def slide_left(self):
         """Slides tiles left one column at a time, but doesn't merge them."""
@@ -107,22 +82,25 @@ class Game:
                     self.board[i, j+1] = 0
                     self.score += 2**self.board[i, j]
 
-    def move(self, key):
-        """Execute a move in the direction of key.
+    def move(self, direction):
+        """Execute a move in the given direction.
 
         Rotate the board so that key points leftwards, move left, then rotate back to the original position.
 
         Parameters
         ----------
-        key : int
+        direction : Action
             The ordinal value of the key pressed.
         """
+        if self.game_over:
+            return False
+
         prev_board = np.copy(self.board)
-        if key == Action.LEFT:
+        if direction == Action.LEFT:
             rot = 0
-        elif key == Action.UP:
+        elif direction == Action.UP:
             rot = 1
-        elif key == Action.RIGHT:
+        elif direction == Action.RIGHT:
             rot = 2
         else:
             rot = -1
@@ -131,29 +109,16 @@ class Game:
         self.slide_left()
         self.merge_left()
         self.slide_left()
-        self.board = np.rot90(self.board, -1*rot)
+        self.board = np.rot90(self.board, -1 * rot)
+
         # If the board is unchanged by the move, then it was illegal.
-        if np.array_equal(self.board, prev_board):
-            self.last_move_illegal = True
+        move_was_legal = not np.array_equal(self.board, prev_board)
+        if move_was_legal:
+            self.add_tile()
+            self.moves += 1
+        return move_was_legal
 
-    def process_key(self, key):
-        """Quit, or move according to key. Ignore illegal moves.
-
-        Parameters
-        ----------
-        key : int
-            The ordinal value of the key pressed.
-        """
-        if key == Action.QUIT:
-            self.game_over = True
-        else:
-            self.move(key)
-            if not self.last_move_illegal:
-                self.add_tile()
-                self.moves += 1
-        self.highest_tile = np.max(2**self.board)
-
-    def display_game(self, axes=None):
+    def display_board(self, axes=None):
         """Display the board as a matplotlib figure.
 
         Parameters
@@ -182,14 +147,3 @@ class Game:
         if show_flag:
             plt.show()
         return axes
-
-    def play_game(self):
-        """Play a game of 2048."""
-        ax = self.display_game()
-        while not self.game_over:
-            key = self.read_key()
-            self.last_move_illegal = False
-            self.process_key(key)
-            self.display_game(ax)
-        plt.close()
-        print('Game Over')
