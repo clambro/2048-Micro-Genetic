@@ -36,11 +36,11 @@ class Population:
         if parents is not None:
             moms, dads = self._tournament(parents)
             for i in range(8):
-                self.genepool.append(net.Net(gen, moms[i], dads[i]))
+                self.genepool.append(net.NetworkPlayer(gen, moms[i], dads[i]))
         else:
             current = len(self.genepool)
             for i in range(10 - current):
-                self.genepool.append(net.Net(gen))
+                self.genepool.append(net.NetworkPlayer(gen))
 
     @staticmethod
     def _tournament(parents):

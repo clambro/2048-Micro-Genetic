@@ -32,7 +32,13 @@ class Game:
         self.game_over = False
 
     def get_legal_moves(self):
-        """Return True if there are no legal moves, else False."""
+        """Determine the legal moves in the current game state.
+
+        Returns
+        -------
+        List[Action]
+            The legal actions that can be taken (not counting quitting).
+        """
         if self.game_over:
             return []
         legal_moves = []
@@ -43,15 +49,13 @@ class Game:
         return legal_moves
 
     def move(self, direction):
-        """Execute a move in the given direction.
+        """Execute a move in the given direction and update the game state if it was legal.
 
         Parameters
         ----------
         direction : Action
-            The ordinal value of the key pressed.
+            The direction to slide the board.
         """
-        if self.game_over:
-            return False
         move_was_legal, new_board, points_earned = self._move(direction)
         if move_was_legal:
             self.board = new_board
@@ -60,16 +64,29 @@ class Game:
             self.score += points_earned
             if self.board.all() and not self.get_legal_moves():
                 self.game_over = True
-        return move_was_legal
 
     def _move(self, direction):
-        """Rotate the board so that direction points leftwards, move left, then rotate back to the original position.
+        """Simulates a move and determines its legality and points earned. Does not update the game state.
+
+        Rotate the board so that direction points leftwards, move left, then rotate back to the original position.
 
         Parameters
         ----------
         direction : Action
-            The ordinal value of the key pressed.
+            The direction to slide the board in.
+
+        Returns
+        -------
+        move_was_legal : bool
+            Whether or not the move was legal.
+        new_board : ndarray
+            The board state after the move. (Identical to self.board for illegal moves).
+        points_earned : int
+            The points earned by executing the move.
         """
+        if self.game_over:
+            return False, self.board, 0
+
         new_board = np.copy(self.board)
         if direction == Action.LEFT:
             rot = 0
@@ -86,13 +103,18 @@ class Game:
         self._slide_left(new_board)
         new_board = np.rot90(new_board, -1 * rot)
 
-        # If the board is unchanged by the move, then it was illegal.
         move_was_legal = not np.array_equal(self.board, new_board)
         return move_was_legal, new_board, points_earned
 
     @staticmethod
     def _slide_left(board):
-        """Slides tiles left one column at a time, but doesn't merge them."""
+        """Slides the tiles of board to the left, in-place, but doesn't merge them.
+
+        Parameters
+        ----------
+        board : ndarray
+            The board to slide in-place.
+        """
         for row in range(4):
             new_row = [i for i in board[row, :] if i != 0]
             new_row = new_row + [0] * (4 - len(new_row))
@@ -100,7 +122,18 @@ class Game:
 
     @staticmethod
     def _merge_left(board):
-        """Merge tiles and increase score according to 2048 rules."""
+        """Merge the tiles of board to the left, in place.
+
+        Parameters
+        ----------
+        board : ndarray
+            The board to slide in-place.
+
+        Returns
+        -------
+        points_earned : int
+            The points earned during the merge.
+        """
         points_earned = 0
         for i in range(4):
             for j in range(3):
@@ -111,7 +144,7 @@ class Game:
         return points_earned
 
     def _add_tile(self):
-        """Adds a 2 or 4 tile randomly to the current game board and checks for game over."""
+        """Adds a 2 or 4 tile randomly to the current game board."""
         # In 2048, there is a 10% chance of a 4 being added instead of a 2.
         if np.random.random() > 0.9:
             val = 2
@@ -124,7 +157,7 @@ class Game:
         self.board = board.reshape((4, 4))
 
     def display_board(self, axes=None):
-        """Display the board as a matplotlib figure.
+        """Displays the board as a matplotlib figure.
 
         Parameters
         ----------

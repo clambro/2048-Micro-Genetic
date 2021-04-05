@@ -3,8 +3,8 @@ import numpy as np
 from players.base import Player
 
 
-class Net(Player):
-    """A simple feed-forward neural net to play 2048.
+class NetworkPlayer(Player):
+    """A simple feed-forward neural network to play 2048.
 
     Layers:
         1. Input layer of 16 nodes corresponding to the 16 tiles on the board.
@@ -62,18 +62,26 @@ class Net(Player):
         self.chromosome += mutation
 
     def _choose_action(self, game):
-        """"""
-        legal_moves = game.get_legal_moves()
-        best_move = None
-        highest_priority = -np.inf
-        for direction, priority in zip(DIRECTIONS, self._predict_move(game.board)):
-            if direction in legal_moves and priority > highest_priority:
-                best_move = direction
-                highest_priority = highest_priority
-        return best_move
+        """Evaluate the position using the network and choose the best legal move it determines.
 
-    def _predict_move(self, board):
-        """Input board into net and feed-forward to get a move direction.
+        Parameters
+        ----------
+        game : Game
+            The current game state.
+
+        Returns
+        -------
+        best_move : Action
+            The action to take.
+        """
+        legal_moves = game.get_legal_moves()
+        sorted_moves = self._get_network_move_order(game.board)
+        for move in sorted_moves:
+            if move in legal_moves:
+                return move
+
+    def _get_network_move_order(self, board):
+        """Input board into the network and evaluate it to get a move direction.
 
         Parameters
         ----------
@@ -82,8 +90,8 @@ class Net(Player):
 
         Returns
         -------
-        moves : ndarray
-            A list of integers corresponding to movement directions, sorted according to the net's output.
+        ndarray
+            The four direction actions sorted in the order of the network's evaluation.
         """
         x = board.reshape(16) / np.max(board)  # Only relative tile magnitude matters.
         x = np.append(1, x)  # Add bias
@@ -92,4 +100,5 @@ class Net(Player):
         h = x @ w_xh
         h = np.maximum(0.01 * h, h)  # Leaky ReLU
         h = np.append(1, h)  # Add bias
-        return h @ w_hy  # No non-linearity needed. We only care about order.
+        y = h @ w_hy  # No non-linearity needed. We only care about order.
+        return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
