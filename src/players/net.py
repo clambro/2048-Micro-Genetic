@@ -3,6 +3,14 @@ import numpy as np
 from players.base import Player
 
 
+NUM_HIDDEN_LAYERS = 2
+assert NUM_HIDDEN_LAYERS > 0
+HIDDEN_LAYER_SIZE = 256
+CHROMOSOME_SIZE = (17 * HIDDEN_LAYER_SIZE +  # Input layer weights
+                   (NUM_HIDDEN_LAYERS - 1) * (HIDDEN_LAYER_SIZE + 1) * HIDDEN_LAYER_SIZE +  # Hidden layer weights
+                   (HIDDEN_LAYER_SIZE + 1) * 4)  # Output layer weights
+
+
 class NetworkPlayer(Player):
     """A simple feed-forward neural network to play 2048.
 
@@ -39,7 +47,7 @@ class NetworkPlayer(Player):
         if chromosome:
             self.chromosome = chromosome
         elif not mom or not dad:
-            self.chromosome = np.random.uniform(-0.4, 0.4, 340)
+            self.chromosome = 2 * np.random.randint(0, 2, CHROMOSOME_SIZE) - 1
         elif mom.get_avg_score() > dad.get_avg_score():
             self.chromosome = np.array([
                     mom.chromosome[i] if np.random.random() > 0.4
@@ -57,9 +65,8 @@ class NetworkPlayer(Player):
 
     def _mutate(self):
         """Add random mutations to 2% of net's chromosome."""
-        mutation = np.array([np.random.randn()/10 if np.random.random() < 0.02
-                             else 0 for _ in range(len(self.chromosome))])
-        self.chromosome += mutation
+        mutation = np.array([-1 if np.random.random() < 0.01 else 1 for _ in range(len(self.chromosome))])
+        self.chromosome *= mutation
 
     def _choose_action(self, game):
         """Evaluate the position using the network and choose the best legal move it determines.
@@ -93,12 +100,17 @@ class NetworkPlayer(Player):
         ndarray
             The four direction actions sorted in the order of the network's evaluation.
         """
+        w_xh = self.chromosome[:17 * HIDDEN_LAYER_SIZE].reshape((17, HIDDEN_LAYER_SIZE))
+        w_hh = self.chromosome[17 * HIDDEN_LAYER_SIZE:-(HIDDEN_LAYER_SIZE + 1) * 4]
+        w_hh = w_hh.reshape((NUM_HIDDEN_LAYERS - 1, HIDDEN_LAYER_SIZE + 1, HIDDEN_LAYER_SIZE))
+        w_hy = self.chromosome[-(HIDDEN_LAYER_SIZE + 1) * 4:].reshape((HIDDEN_LAYER_SIZE + 1, 4))
+
         x = board.reshape(16) / np.max(board)  # Only relative tile magnitude matters.
         x = np.append(1, x)  # Add bias
-        w_xh = self.chromosome[:272].reshape((17, 16))
-        w_hy = self.chromosome[272:].reshape((17, 4))
-        h = x @ w_xh
-        h = np.maximum(0.01 * h, h)  # Leaky ReLU
-        h = np.append(1, h)  # Add bias
+        h = np.sign(x @ w_xh)
+        for w in w_hh:
+            h = np.append(1, h)
+            h = np.sign(h @ w)
+        h = np.append(1, h)
         y = h @ w_hy  # No non-linearity needed. We only care about order.
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
