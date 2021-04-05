@@ -86,9 +86,9 @@ class Population:
         for n in self.genepool:
             n.play_multiple_games(games)
 
-    def sort_by_score(self):
-        """Sort the genepool in descending order by each net's score."""
-        self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
+    def sort_by_tile(self):
+        """Sort the genepool in descending order by each net's average highest tile."""
+        self.genepool.sort(key=lambda n: n.get_avg_highest_tile(), reverse=True)
 
 
 def train_population(final_gen, initial_gen=0, elite=None):
@@ -110,25 +110,25 @@ def train_population(final_gen, initial_gen=0, elite=None):
 
     Returns
     -------
-    top_scores : List[float]
-        List of floats. The top score in each generation.
+    top_tiles : List[float]
+        List of floats. The top average tile in each generation.
     best_net : Net
         The trained net that performs best.
     """
     parents = None
-    top_scores = []
+    top_tiles = []
 
     for gen in range(initial_gen+1, final_gen+1):
         pop = Population(gen, elite, parents)
 
         print('Playing games for generation', gen, 'of', final_gen)
         pop.play_games()
-        pop.sort_by_score()
+        pop.sort_by_tile()
         if not pop.generation % 20 and pop.generation != 0:
             name = 'Generation' + str(pop.generation)
             np.save(name, pop.genepool[:2])
 
-        top_scores.append(pop.genepool[0].get_avg_score())
+        top_tiles.append(pop.genepool[0].get_avg_highest_tile())
 
         elite = pop.genepool[:2]
 
@@ -138,45 +138,14 @@ def train_population(final_gen, initial_gen=0, elite=None):
             parents = pop.genepool
 
         print('Best net\'s generation =', pop.genepool[0].generation)
-        print('Best net\'s score =', np.rint(pop.genepool[0].get_avg_score()), '\n')
+        print('Best net\'s score =', np.rint(pop.genepool[0].get_avg_score()))
+        print('Best net\'s highest tile =', np.rint(pop.genepool[0].get_avg_highest_tile()), '\n')
 
     plt.figure()
     plt.title('log_2(Score)')
-    plt.plot(np.log2(top_scores))
-
-    print('Finding best...')
-    best_net = find_best(pop)
+    plt.plot(np.log2(top_tiles))
 
     filename = "BestNetGen" + str(final_gen)
-    np.save(filename, best_net)
+    np.save(filename, pop.genepool[0])
 
-    return top_scores, best_net
-
-
-def find_best(pop):
-    """Play 200 games for each net in population. Print stats and best model.
-
-    Parameters
-    ----------
-    pop : Population
-        The population to find the best network in.
-
-    Returns
-    -------
-    Net
-        The best network in pop's genepool.
-    """
-    pop.play_games(200)
-    score = [np.rint(i.get_avg_score()) for i in pop.genepool]
-    tile = [np.rint(i.get_avg_highest_tile()) for i in pop.genepool]
-    best = np.argmax(score)
-
-    print(score)
-    print(tile)
-    print('Max score =', np.max(score))
-    print('Min score =', np.min(score))
-    print('Mean score =', np.mean(score))
-    print('Median score =', np.median(score))
-    print('Best model =', best)
-
-    return pop.genepool[best]
+    return top_tiles, pop.genepool[0]

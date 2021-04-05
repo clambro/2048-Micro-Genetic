@@ -94,11 +94,11 @@ class NetworkPlayer(Player):
             The four direction actions sorted in the order of the network's evaluation.
         """
         w_xh = self.chromosome[:16 * HIDDEN_LAYER_SIZE].reshape((16, HIDDEN_LAYER_SIZE))
-        w_hh = self.chromosome[16 * HIDDEN_LAYER_SIZE:-HIDDEN_LAYER_SIZE * 4]
-        w_hh = w_hh.reshape((NUM_HIDDEN_LAYERS - 1, HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE))
+        w_hh = self.chromosome[16 * HIDDEN_LAYER_SIZE:-HIDDEN_LAYER_SIZE * 4]\
+            .reshape((NUM_HIDDEN_LAYERS - 1, HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE))
         w_hy = self.chromosome[-HIDDEN_LAYER_SIZE * 4:].reshape((HIDDEN_LAYER_SIZE, 4))
 
-        x = board.reshape(16) / np.max(board)  # Only relative tile magnitude matters.
+        x = 3 * (board.reshape(16) / 7 - 1)  # Max tile log-value in 2048 is 14. Normalize to [-3, 3].
         h = np.sign(x @ w_xh)
         for w in w_hh:
             h = np.sign(h @ w)
