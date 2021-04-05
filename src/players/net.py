@@ -6,9 +6,9 @@ from players.base import Player
 NUM_HIDDEN_LAYERS = 2
 assert NUM_HIDDEN_LAYERS > 0
 HIDDEN_LAYER_SIZE = 256
-CHROMOSOME_SIZE = (17 * HIDDEN_LAYER_SIZE +  # Input layer weights
-                   (NUM_HIDDEN_LAYERS - 1) * (HIDDEN_LAYER_SIZE + 1) * HIDDEN_LAYER_SIZE +  # Hidden layer weights
-                   (HIDDEN_LAYER_SIZE + 1) * 4)  # Output layer weights
+CHROMOSOME_SIZE = (16 * HIDDEN_LAYER_SIZE +  # Input layer weights
+                   (NUM_HIDDEN_LAYERS - 1) * HIDDEN_LAYER_SIZE**2 +  # Hidden layer weights
+                   HIDDEN_LAYER_SIZE * 4)  # Output layer weights
 
 
 class NetworkPlayer(Player):
@@ -46,22 +46,15 @@ class NetworkPlayer(Player):
         self.generation = gen
         if chromosome:
             self.chromosome = chromosome
-        elif not mom or not dad:
-            self.chromosome = 2 * np.random.randint(0, 2, CHROMOSOME_SIZE) - 1
-        elif mom.get_avg_score() > dad.get_avg_score():
+        elif None not in [mom, dad]:
             self.chromosome = np.array([
-                    mom.chromosome[i] if np.random.random() > 0.4
+                    mom.chromosome[i] if np.random.random() > 0.5
                     else dad.chromosome[i]
                     for i in range(len(mom.chromosome))
                     ])
             self._mutate()
         else:
-            self.chromosome = np.array([
-                    dad.chromosome[i] if np.random.random() > 0.4
-                    else mom.chromosome[i]
-                    for i in range(len(mom.chromosome))
-                    ])
-            self._mutate()
+            self.chromosome = 2 * np.random.randint(0, 2, CHROMOSOME_SIZE) - 1
 
     def _mutate(self):
         """Add random mutations to 2% of net's chromosome."""
@@ -100,17 +93,14 @@ class NetworkPlayer(Player):
         ndarray
             The four direction actions sorted in the order of the network's evaluation.
         """
-        w_xh = self.chromosome[:17 * HIDDEN_LAYER_SIZE].reshape((17, HIDDEN_LAYER_SIZE))
-        w_hh = self.chromosome[17 * HIDDEN_LAYER_SIZE:-(HIDDEN_LAYER_SIZE + 1) * 4]
-        w_hh = w_hh.reshape((NUM_HIDDEN_LAYERS - 1, HIDDEN_LAYER_SIZE + 1, HIDDEN_LAYER_SIZE))
-        w_hy = self.chromosome[-(HIDDEN_LAYER_SIZE + 1) * 4:].reshape((HIDDEN_LAYER_SIZE + 1, 4))
+        w_xh = self.chromosome[:16 * HIDDEN_LAYER_SIZE].reshape((16, HIDDEN_LAYER_SIZE))
+        w_hh = self.chromosome[16 * HIDDEN_LAYER_SIZE:-HIDDEN_LAYER_SIZE * 4]
+        w_hh = w_hh.reshape((NUM_HIDDEN_LAYERS - 1, HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE))
+        w_hy = self.chromosome[-HIDDEN_LAYER_SIZE * 4:].reshape((HIDDEN_LAYER_SIZE, 4))
 
         x = board.reshape(16) / np.max(board)  # Only relative tile magnitude matters.
-        x = np.append(1, x)  # Add bias
         h = np.sign(x @ w_xh)
         for w in w_hh:
-            h = np.append(1, h)
             h = np.sign(h @ w)
-        h = np.append(1, h)
         y = h @ w_hy  # No non-linearity needed. We only care about order.
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
