@@ -44,7 +44,7 @@ class NetworkPlayer(Player):
         """
         super().__init__()
         self.generation = gen
-        if chromosome:
+        if chromosome is not None:
             self.chromosome = chromosome
         elif None not in [mom, dad]:
             self.chromosome = np.array([
