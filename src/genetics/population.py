@@ -112,13 +112,13 @@ def train_population(final_gen, initial_gen=0, elite=None):
 
     Returns
     -------
-    top_tiles : List[float]
+    top_scores : List[float]
         List of floats. The top average score in each generation.
     best_net : NetworkPlayer
         The trained networks that performs best.
     """
     parents = None
-    top_tiles = []
+    top_scores = []
 
     for gen in range(initial_gen+1, final_gen+1):
         pop = Population(gen, elite, parents)
@@ -130,7 +130,7 @@ def train_population(final_gen, initial_gen=0, elite=None):
             name = 'Generation' + str(pop.generation)
             np.save(name, pop.genepool[:2])
 
-        top_tiles.append(pop.genepool[0].get_avg_score())
+        top_scores.append(pop.genepool[0].get_avg_score())
 
         elite = pop.genepool[:2]
 
@@ -145,9 +145,9 @@ def train_population(final_gen, initial_gen=0, elite=None):
 
     plt.figure()
     plt.title('log_2(Highest Score)')
-    plt.plot(np.log2(top_tiles))
+    plt.plot(np.log2(top_scores))
 
     filename = "BestNetGen" + str(final_gen)
     np.save(filename, pop.genepool[0])
 
-    return top_tiles, pop.genepool[0]
+    return top_scores, pop.genepool[0]
