@@ -61,6 +61,9 @@ class Genome:
     def _spawn_child_chromosome(mom, dad):
         """Spawn mutated weight arrays from two parent Genomes.
 
+        Weights are passed down to children one matrix row at a time to preserve some similarity between parents and
+        offspring. Mutations happen on a per-weight basis, however.
+
         Parameters
         ----------
         mom : Genome
