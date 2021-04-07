@@ -1,3 +1,4 @@
+from game.action import DIRECTIONS
 import numpy as np
 
 
@@ -11,9 +12,28 @@ OUTPUT_WEIGHT_SHAPE = (HIDDEN_LAYER_SIZE, 4)
 
 
 class Genome:
-    """"""
+    """The weights for a binary neural network for NetworkPlayer with rules for reproduction.
+
+    Attributes
+    ----------
+    input_weights : ndarray
+        The weights for the first layer with shape INPUT_WEIGHT_SHAPE.
+    hidden_weights : ndarray
+        The weights for all the hidden layers with shape HIDDEN_WEIGHTS_SHAPE.
+    output_weights : ndarray
+        The weights for the final layer with shape OUTPUT_WEIGHT_SHAPE.
+    """
 
     def __init__(self, mom=None, dad=None):
+        """Initializes the genome either through reproduction from parents or random generation.
+
+        Parameters
+        ----------
+        mom : Optional[Genome]
+            The first of the two parent genomes.
+        dad : Optional[Genome]
+            The second of the two parent genomes.
+        """
         if None not in [mom, dad]:
             self.input_weights, self.hidden_weights, self.output_weights = self._spawn_child_chromosome(mom, dad)
         else:
@@ -23,12 +43,40 @@ class Genome:
 
     @staticmethod
     def _generate_random_weights(shape):
-        """"""
+        """Generate random binary {-1, 1} weights of the given shape.
+
+        Parameters
+        ----------
+        shape : Tuple[int]
+            The shape of weights to generate.
+
+        Returns
+        -------
+        ndarray
+            The generated weights.
+        """
         return 2 * np.random.randint(0, 2, shape) - 1
 
     @staticmethod
     def _spawn_child_chromosome(mom, dad):
-        """"""
+        """Spawn mutated weight arrays from two parent Genomes.
+
+        Parameters
+        ----------
+        mom : Genome
+            The first of the two parent genomes.
+        dad : Genome
+            The second of the two parent genomes.
+
+        Returns
+        -------
+        input_weights : ndarray
+            The weights for the first layer with shape INPUT_WEIGHT_SHAPE.
+        hidden_weights : ndarray
+            The weights for all the hidden layers with shape HIDDEN_WEIGHTS_SHAPE.
+        output_weights : ndarray
+            The weights for the final layer with shape OUTPUT_WEIGHT_SHAPE.
+        """
         input_weights = np.array([m if np.random.random() > 0.5 else d
                                   for m, d in zip(mom.input_weights, dad.input_weights)])
 
@@ -41,7 +89,28 @@ class Genome:
                                    for m, d in zip(mom.output_weights, dad.output_weights)])
 
         def mutate(array):
+            """Randomly flip 1% of the bits."""
             mutation = np.array([-1 if np.random.random() < 0.01 else 1 for _ in range(array.size)])
             return array * mutation.reshape(array.shape)
 
         return mutate(input_weights), mutate(hidden_weights), mutate(output_weights)
+
+    def calculate_move_order(self, board):
+        """Input board into the network and evaluate it to get the priority for each move direction.
+
+        Parameters
+        ----------
+        board : ndarray
+            The board state to calculate the move for.
+
+        Returns
+        -------
+        ndarray
+            The four direction actions sorted in the order of the network's evaluation.
+        """
+        x = 3 * (board.reshape(16) / 7 - 1)  # Max tile log-value in 2048 is 14. Normalize to [-3, 3].
+        h = np.sign(x @ self.input_weights)
+        for w in self.hidden_weights:
+            h = np.sign(h @ w)
+        y = h @ self.output_weights  # No non-linearity needed. We only care about order.
+        return np.asarray(DIRECTIONS)[y.argsort()[::-1]]

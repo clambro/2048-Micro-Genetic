@@ -1,17 +1,17 @@
 import matplotlib.pyplot as plt
-from players import net
+from players.net import NetworkPlayer
 import numpy as np
 
 
 class Population:
-    """A collection of nets.
+    """A collection of networks.
 
     Attributes
     ----------
     generation : int
         The current generation.
     genepool : List[Net]
-        The nets in the population.
+        The networks in the population.
     """
 
     def __init__(self, gen, elite=None, parents=None):
@@ -20,46 +20,48 @@ class Population:
         Parameters
         ----------
         gen :  int
-            The generation of new nets.
+            The generation of new networks.
         elite : Union[List[Net], str]
-            Nets that are copied directly to the population OR a file name corresponding to a file containing that list.
+            Networks that are copied directly to the population OR a file path to such a list.
         parents : List[Net]
-            Nets from which the population will be spawned.
+            Networks from which the population will be spawned.
         """
         self.generation = gen
 
         if isinstance(elite, str):
             self.genepool = np.load(elite).tolist()
+        elif elite is not None:
+            self.genepool = elite
         else:
-            self.genepool = elite if elite is not None else []
+            self.genepool = []
 
         if parents is not None:
             moms, dads = self._tournament(parents)
             for i in range(8):
-                self.genepool.append(net.BinaryNetworkPlayer(gen, moms[i], dads[i]))
+                self.genepool.append(NetworkPlayer(gen, moms[i], dads[i]))
         else:
             current = len(self.genepool)
             for i in range(10 - current):
-                self.genepool.append(net.BinaryNetworkPlayer(gen))
+                self.genepool.append(NetworkPlayer(gen))
 
     @staticmethod
     def _tournament(parents):
         """Tournament selection to generate pairs of parents.
 
-        The net with the highest score is selected to be a parent with probability p, then second highest p*(p-1), third
-        highest p*(p-1)**2, etc.
+        The network with the highest score is selected to be a parent with probability p, then second highest p*(p-1),
+        third highest p*(p-1)**2, etc.
 
         Parameters
         ----------
         parents : List[Net]
-            Nets from which the population will be spawned.
+            Networks from which the population will be spawned.
 
         Returns
         -------
         moms : List[Net]
-            A list of 8 nets.
+            A list of 8 networks.
         dads : List[Net]
-            A list of 8 nets.
+            A list of 8 networks.
         """
         moms = []
         dads = []
@@ -76,27 +78,27 @@ class Population:
         return moms, dads
 
     def play_games(self, games=50):
-        """Get each net in the population to play a certain number of games.
+        """Get each network in the population to play a certain number of games.
 
         Parameters
         ----------
         games : int
-            The number of games each net should play.
+            The number of games each network should play.
         """
         for n in self.genepool:
             n.play_multiple_games(games)
 
     def sort_by_score(self):
-        """Sort the genepool in descending order by each net's average highest tile."""
+        """Sort the genepool in descending order by each network's average score."""
         self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
 
 
 def train_population(final_gen, initial_gen=0, elite=None):
-    """Run a micro-genetic algorithm to evolve a good neural net.
+    """Run a micro-genetic algorithm to evolve a good neural network.
 
-    Each population defaults to 10 nets and plays 50 games. The top 2 from each generation are copied to the next one,
-    but all have the opportunity to reproduce. Every 10 generations, all but the top 2 are killed and 8 new nets are
-    randomly generated to add to the 2 that survived.
+    Each population defaults to 10 networks and plays 50 games. The top 2 from each generation are copied to the next
+    one, but all have the opportunity to reproduce. Every 10 generations, all but the top 2 are killed and 8 new
+    networks are randomly generated to add to the 2 that survived.
 
     Parameters
     ----------
@@ -106,14 +108,14 @@ def train_population(final_gen, initial_gen=0, elite=None):
     initial_gen : int
         The total number of generations played is final_gen - initial_gen
     elite : List[int]
-        List of nets to copy directly into the new population.
+        List of networks to copy directly into the new population.
 
     Returns
     -------
     top_tiles : List[float]
-        List of floats. The top average tile in each generation.
-    best_net : Net
-        The trained net that performs best.
+        List of floats. The top average score in each generation.
+    best_net : NetworkPlayer
+        The trained networks that performs best.
     """
     parents = None
     top_tiles = []
@@ -137,9 +139,9 @@ def train_population(final_gen, initial_gen=0, elite=None):
         else:
             parents = pop.genepool
 
-        print('Best net\'s generation =', pop.genepool[0].generation)
-        print('Best net\'s score =', np.rint(pop.genepool[0].get_avg_score()))
-        print('Best net\'s highest tile =', np.rint(pop.genepool[0].get_avg_highest_tile()), '\n')
+        print('Best network\'s generation =', pop.genepool[0].generation)
+        print('Best network\'s score =', np.rint(pop.genepool[0].get_avg_score()))
+        print('Best network\'s highest tile =', np.rint(pop.genepool[0].get_avg_highest_tile()), '\n')
 
     plt.figure()
     plt.title('log_2(Highest Score)')
