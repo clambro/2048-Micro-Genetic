@@ -4,7 +4,7 @@ import numpy as np
 from players.base import Player
 
 
-class NetworkPlayer(Player):
+class BinaryNetworkPlayer(Player):
     """A simple feed-forward neural network to play 2048.
 
     Layers:
@@ -76,11 +76,9 @@ class NetworkPlayer(Player):
         ndarray
             The four direction actions sorted in the order of the network's evaluation.
         """
-        w_xh, w_hh, w_hy = self.genome.get_weight_matrices()
-
         x = 3 * (board.reshape(16) / 7 - 1)  # Max tile log-value in 2048 is 14. Normalize to [-3, 3].
-        h = np.sign(x @ w_xh)
-        for w in w_hh:
+        h = np.sign(x @ self.genome.input_weights)
+        for w in self.genome.hidden_weights:
             h = np.sign(h @ w)
-        y = h @ w_hy  # No non-linearity needed. We only care about order.
+        y = h @ self.genome.output_weights  # No non-linearity needed. We only care about order.
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]

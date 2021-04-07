@@ -36,11 +36,11 @@ class Population:
         if parents is not None:
             moms, dads = self._tournament(parents)
             for i in range(8):
-                self.genepool.append(net.NetworkPlayer(gen, moms[i], dads[i]))
+                self.genepool.append(net.BinaryNetworkPlayer(gen, moms[i], dads[i]))
         else:
             current = len(self.genepool)
             for i in range(10 - current):
-                self.genepool.append(net.NetworkPlayer(gen))
+                self.genepool.append(net.BinaryNetworkPlayer(gen))
 
     @staticmethod
     def _tournament(parents):
@@ -86,9 +86,9 @@ class Population:
         for n in self.genepool:
             n.play_multiple_games(games)
 
-    def sort_by_tile(self):
+    def sort_by_score(self):
         """Sort the genepool in descending order by each net's average highest tile."""
-        self.genepool.sort(key=lambda n: n.get_avg_highest_tile(), reverse=True)
+        self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
 
 
 def train_population(final_gen, initial_gen=0, elite=None):
@@ -123,12 +123,12 @@ def train_population(final_gen, initial_gen=0, elite=None):
 
         print('Playing games for generation', gen, 'of', final_gen)
         pop.play_games()
-        pop.sort_by_tile()
+        pop.sort_by_score()
         if not pop.generation % 20 and pop.generation != 0:
             name = 'Generation' + str(pop.generation)
             np.save(name, pop.genepool[:2])
 
-        top_tiles.append(pop.genepool[0].get_avg_highest_tile())
+        top_tiles.append(pop.genepool[0].get_avg_score())
 
         elite = pop.genepool[:2]
 
@@ -142,7 +142,7 @@ def train_population(final_gen, initial_gen=0, elite=None):
         print('Best net\'s highest tile =', np.rint(pop.genepool[0].get_avg_highest_tile()), '\n')
 
     plt.figure()
-    plt.title('log_2(Score)')
+    plt.title('log_2(Highest Score)')
     plt.plot(np.log2(top_tiles))
 
     filename = "BestNetGen" + str(final_gen)

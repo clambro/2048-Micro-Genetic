@@ -9,31 +9,39 @@ INPUT_WEIGHT_SHAPE = (16, HIDDEN_LAYER_SIZE)
 HIDDEN_WEIGHTS_SHAPE = ((NUM_HIDDEN_LAYERS - 1), HIDDEN_LAYER_SIZE, HIDDEN_LAYER_SIZE)
 OUTPUT_WEIGHT_SHAPE = (HIDDEN_LAYER_SIZE, 4)
 
-CHROMOSOME_SIZE = sum(np.prod(w) for w in [INPUT_WEIGHT_SHAPE, HIDDEN_WEIGHTS_SHAPE, OUTPUT_WEIGHT_SHAPE])
-
 
 class Genome:
     """"""
 
     def __init__(self, mom=None, dad=None):
         if None not in [mom, dad]:
-            self.chromosome = np.array([
-                    mom.chromosome[i] if np.random.random() > 0.5
-                    else dad.chromosome[i]
-                    for i in range(len(mom.chromosome))
-                    ])
-            self._mutate()
+            self.input_weights, self.hidden_weights, self.output_weights = self._spawn_child_chromosome(mom, dad)
         else:
-            self.chromosome = 2 * np.random.randint(0, 2, CHROMOSOME_SIZE) - 1
+            self.input_weights = self._generate_random_weights(INPUT_WEIGHT_SHAPE)
+            self.hidden_weights = self._generate_random_weights(HIDDEN_WEIGHTS_SHAPE)
+            self.output_weights = self._generate_random_weights(OUTPUT_WEIGHT_SHAPE)
 
-    def _mutate(self):
-        """Add random mutations to 2% of net's chromosome."""
-        mutation = np.array([-1 if np.random.random() < 0.01 else 1 for _ in range(len(self.chromosome))])
-        self.chromosome *= mutation
-
-    def get_weight_matrices(self):
+    @staticmethod
+    def _generate_random_weights(shape):
         """"""
-        w_xh = self.chromosome[:np.prod(INPUT_WEIGHT_SHAPE)].reshape(INPUT_WEIGHT_SHAPE)
-        w_hh = self.chromosome[np.prod(INPUT_WEIGHT_SHAPE):-np.prod(OUTPUT_WEIGHT_SHAPE)].reshape(HIDDEN_WEIGHTS_SHAPE)
-        w_hy = self.chromosome[-np.prod(OUTPUT_WEIGHT_SHAPE):].reshape(OUTPUT_WEIGHT_SHAPE)
-        return w_xh, w_hh, w_hy
+        return 2 * np.random.randint(0, 2, shape) - 1
+
+    @staticmethod
+    def _spawn_child_chromosome(mom, dad):
+        """"""
+        input_weights = np.array([m if np.random.random() > 0.5 else d
+                                  for m, d in zip(mom.input_weights, dad.input_weights)])
+
+        hidden_weights = []
+        for m_hid, d_hid in zip(mom.hidden_weights, dad.hidden_weights):
+            hidden_weights.append(np.array([m if np.random.random() > 0.5 else d for m, d in zip(m_hid, d_hid)]))
+        hidden_weights = np.asarray(hidden_weights)
+
+        output_weights = np.array([m if np.random.random() > 0.5 else d
+                                   for m, d in zip(mom.output_weights, dad.output_weights)])
+
+        def mutate(array):
+            mutation = np.array([-1 if np.random.random() < 0.01 else 1 for _ in range(array.size)])
+            return array * mutation.reshape(array.shape)
+
+        return mutate(input_weights), mutate(hidden_weights), mutate(output_weights)
