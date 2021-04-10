@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
+import pickle
 from players.net import NetworkPlayer
 import numpy as np
+
+
+NETS_PER_POP = 32
+NUM_ELITE = 4
 
 
 class Population:
@@ -10,74 +15,53 @@ class Population:
     ----------
     generation : int
         The current generation.
-    genepool : List[Net]
+    networks : List[NetworkPlayer]
         The networks in the population.
+    elites : List[NetworkPlayer]
+        Additional elite networks from a previous generation that may be treated differently.
     """
 
-    def __init__(self, gen, elite=None, parents=None):
-        """Builds the population by copying elites and creating children from the genepool or randomly generating them.
+    def __init__(self, pop=None):
+        """Builds the population by either reproducing from a previous one or randomly generating networks.
 
         Parameters
         ----------
-        gen :  int
-            The generation of new networks.
-        elite : Union[List[Net], str]
-            Networks that are copied directly to the population OR a file path to such a list.
-        parents : List[Net]
-            Networks from which the population will be spawned.
+        pop : Union[Population, str]
+            The population from which to spawn this population, or a path leading to it. If None, the population will
+            be generated randomly.
         """
-        self.generation = gen
-
-        if isinstance(elite, str):
-            self.genepool = np.load(elite).tolist()
-        elif elite is not None:
-            self.genepool = elite
+        if pop is None:
+            self.generation = 1
+            self.elites = []
+            self.networks = [NetworkPlayer() for _ in range(NETS_PER_POP)]
         else:
-            self.genepool = []
-
-        if parents is not None:
-            moms, dads = self._tournament(parents)
-            for i in range(8):
-                self.genepool.append(NetworkPlayer(gen, moms[i], dads[i]))
-        else:
-            current = len(self.genepool)
-            for i in range(10 - current):
-                self.genepool.append(NetworkPlayer(gen))
+            if isinstance(pop, str):
+                with open(pop, 'rb') as f:
+                    pop = pickle.load(f)
+            self.generation = pop.generation + 1
+            prev_networks = pop.get_sorted_networks(include_elite=True)
+            self.elites = prev_networks[:NUM_ELITE]
+            self.networks = self._spawn_children(prev_networks)
 
     @staticmethod
-    def _tournament(parents):
-        """Tournament selection to generate pairs of parents.
-
-        The network with the highest score is selected to be a parent with probability p, then second highest p*(p-1),
-        third highest p*(p-1)**2, etc.
+    def _spawn_children(parents):
+        """Generate a list of child networks from a list of parents.
 
         Parameters
         ----------
-        parents : List[Net]
+        parents : List[NetworkPlayer]
             Networks from which the population will be spawned.
 
         Returns
         -------
-        moms : List[Net]
-            A list of 8 networks.
-        dads : List[Net]
-            A list of 8 networks.
+        List[NetworkPlayer]
+            The networks for the current population.
         """
-        moms = []
-        dads = []
-        while len(moms) < 8:
-            m1, m2, d1, d2 = np.random.choice(parents, 4)
-            if m1.get_avg_score() > m2.get_avg_score():
-                moms.append(m1)
-            else:
-                moms.append(m2)
-            if d1.get_avg_score() > d2.get_avg_score():
-                dads.append(d1)
-            else:
-                dads.append(d2)
-        return moms, dads
+        moms = np.random.choice(parents, NETS_PER_POP - NUM_ELITE)
+        dads = np.random.choice(parents, NETS_PER_POP - NUM_ELITE)
+        return [NetworkPlayer(mom=m, dad=d) for m, d in zip(moms, dads)]
 
-    def play_games(self, games=50):
+    def play_games(self, games, include_elites):
         """Get each network in the population to play a certain number of games.
 
         Parameters
@@ -85,12 +69,20 @@ class Population:
         games : int
             The number of games each network should play.
         """
-        for n in self.genepool:
-            n.play_multiple_games(games)
+        [n.play_multiple_games(games) for n in self.networks]
+        if include_elites:
+            [n.play_multiple_games(games) for n in self.elites]
 
-    def sort_by_score(self):
+    def get_sorted_networks(self, include_elites):
         """Sort the genepool in descending order by each network's average score."""
-        self.genepool.sort(key=lambda n: n.get_avg_score(), reverse=True)
+        networks = self.networks
+        if include_elites:
+            networks += self.elites
+        return networks.sort(key=lambda n: n.get_avg_score(), reverse=True)
+
+    def save(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self, f)
 
 
 def train_population(final_gen, initial_gen=0, elite=None):
