@@ -28,20 +28,21 @@ def run_micro_genetic_alg(num_generations, pop=None):
         The trained networks that performs best.
     """
     top_scores = []
+    top_network = None
     for gen in range(num_generations):
         pop = Population(pop)
         print(f'Playing games for generation {pop.generation} ({gen + 1} of {num_generations})')
 
-        print('Playing first 30 games.')
-        pop.play_games(30, include_elites=False)
+        print('Playing first 10 games.')
+        pop.play_games(10, include_elites=False)
         pop.networks = pop.get_sorted_networks(include_elites=False)[:NETS_PER_POP // 2 - NUM_ELITE]
 
-        print('Playing next 70 games.')
-        pop.play_games(70, include_elites=False)
+        print('Playing next 40 games.')
+        pop.play_games(40, include_elites=False)
         pop.networks = pop.get_sorted_networks(include_elites=False)[:NETS_PER_POP // 4 - NUM_ELITE]
 
-        print('Playing final 200 games.')
-        pop.play_games(200, include_elites=True)
+        print('Playing final 150 games.')
+        pop.play_games(150, include_elites=False)
 
         if not pop.generation % 10 and pop.generation != 0:
             pop.save(f'Generation{pop.generation}.pkl')
@@ -49,7 +50,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
         top_network = pop.get_sorted_networks(include_elites=True)[0]
         top_scores.append(top_network.get_avg_score())
 
-        print('Best network\'s generation =', top_network.gen)
+        print('Best network\'s generation =', top_network.generation)
         print('Best network\'s score =', np.rint(top_scores[-1]))
         print('Best network\'s highest tile =', np.rint(top_network.get_avg_highest_tile()), '\n')
 

@@ -39,7 +39,7 @@ class Population:
                 with open(pop, 'rb') as f:
                     pop = pickle.load(f)
             self.generation = pop.generation + 1
-            prev_networks = pop.get_sorted_networks(include_elite=True)
+            prev_networks = pop.get_sorted_networks(include_elites=True)
             self.elites = prev_networks[:NUM_ELITE]
             self.networks = self._spawn_children(prev_networks)
 
@@ -77,7 +77,8 @@ class Population:
         networks = self.networks
         if include_elites:
             networks += self.elites
-        return networks.sort(key=lambda n: n.get_avg_score(), reverse=True)
+        networks.sort(key=lambda n: n.get_avg_score(), reverse=True)
+        return networks
 
     def save(self, filename):
         with open(filename, 'wb') as f:
