@@ -20,9 +20,9 @@ class NetworkPlayer(Player):
         ----------
         gen : int
             The current generation.
-        mom : Optional[Net]
+        mom : Optional[NetworkPlayer]
             A net from which the chromosome will be sampled.
-        dad : Optional[Net]
+        dad : Optional[NetworkPlayer]
             The other net from which the chromosome will be sampled.
         genome : Optional[ndarray]
             The genome containing the network weights.

@@ -33,16 +33,18 @@ def run_micro_genetic_alg(num_generations, pop=None):
         pop = Population(pop)
         print(f'Playing games for generation {pop.generation} ({gen + 1} of {num_generations})')
 
-        print('Playing first 10 games.')
-        pop.play_games(10, include_elites=False)
-        pop.networks = pop.get_sorted_networks(include_elites=False)[:NETS_PER_POP // 2 - NUM_ELITE]
+        print('Playing first 20 games.')
+        pop.play_games(20, include_elites=False)
+        num_to_filter = NETS_PER_POP // 2 - len(pop.elites)
+        pop.networks = pop.get_sorted_networks(include_elites=False)[:num_to_filter]
 
-        print('Playing next 40 games.')
-        pop.play_games(40, include_elites=False)
-        pop.networks = pop.get_sorted_networks(include_elites=False)[:NETS_PER_POP // 4 - NUM_ELITE]
+        print('Playing next 30 games.')
+        pop.play_games(30, include_elites=False)
+        num_to_filter = NETS_PER_POP // 4 - len(pop.elites)
+        pop.networks = pop.get_sorted_networks(include_elites=False)[:num_to_filter]
 
-        print('Playing final 150 games.')
-        pop.play_games(150, include_elites=False)
+        print('Playing final 250 games.')
+        pop.play_games(250, include_elites=False)
 
         if not pop.generation % 10 and pop.generation != 0:
             pop.save(f'Generation{pop.generation}.pkl')

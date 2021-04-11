@@ -37,25 +37,12 @@ class Genome:
         if None not in [mom, dad]:
             self.input_weights, self.hidden_weights, self.output_weights = self._spawn_child_chromosome(mom, dad)
         else:
-            self.input_weights = self._generate_random_weights(INPUT_WEIGHT_SHAPE)
-            self.hidden_weights = self._generate_random_weights(HIDDEN_WEIGHTS_SHAPE)
-            self.output_weights = self._generate_random_weights(OUTPUT_WEIGHT_SHAPE)
-
-    @staticmethod
-    def _generate_random_weights(shape):
-        """Generate random binary {-1, 1} weights of the given shape.
-
-        Parameters
-        ----------
-        shape : Tuple[int]
-            The shape of weights to generate.
-
-        Returns
-        -------
-        ndarray
-            The generated weights.
-        """
-        return 2 * np.random.randint(0, 2, shape) - 1
+            def generate_binary_weights(shape):
+                """Generate binary {-1, 1} weights of a given shape."""
+                return 2 * np.random.randint(0, 2, shape) - 1
+            self.input_weights = generate_binary_weights(INPUT_WEIGHT_SHAPE)
+            self.hidden_weights = generate_binary_weights(HIDDEN_WEIGHTS_SHAPE)
+            self.output_weights = generate_binary_weights(OUTPUT_WEIGHT_SHAPE)
 
     @staticmethod
     def _spawn_child_chromosome(mom, dad):
@@ -92,8 +79,9 @@ class Genome:
                                    for m, d in zip(mom.output_weights, dad.output_weights)])
 
         def mutate(array):
-            """Randomly flip 1% of the bits."""
-            mutation = np.array([-1 if np.random.random() < 0.01 else 1 for _ in range(array.size)])
+            """Randomly flip or zero 1% of the bits."""
+            mutation = np.array([np.random.choice([0, -1])
+                                 if np.random.random() < 0.01 else 1 for _ in range(array.size)])
             return array * mutation.reshape(array.shape)
 
         return mutate(input_weights), mutate(hidden_weights), mutate(output_weights)

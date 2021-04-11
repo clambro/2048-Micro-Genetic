@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
 import pickle
 from players.net import NetworkPlayer
 import numpy as np
+from tqdm import tqdm
 
 
 NETS_PER_POP = 32
@@ -60,7 +60,7 @@ class Population:
         dads = np.random.choice(parents, NETS_PER_POP - NUM_ELITE)
         return [NetworkPlayer(gen=self.generation, mom=m, dad=d) for m, d in zip(moms, dads)]
 
-    def play_games(self, games, include_elites):
+    def play_games(self, games, include_elites, progress_bar=True):
         """Get each network in the population to play a certain number of games.
 
         Parameters
@@ -68,9 +68,15 @@ class Population:
         games : int
             The number of games each network should play.
         """
-        [n.play_multiple_games(games) for n in self.networks]
+        networks = self.networks
         if include_elites:
-            [n.play_multiple_games(games) for n in self.elites]
+            networks += self.elites
+        if progress_bar:
+            iterator = tqdm(networks)
+        else:
+            iterator = networks
+        for n in iterator:
+            n.play_multiple_games(games)
 
     def get_sorted_networks(self, include_elites):
         """Sort the genepool in descending order by each network's average score."""
