@@ -26,7 +26,7 @@ class Population:
 
         Parameters
         ----------
-        pop : Union[Population, str]
+        pop : Optional[Union[Population, str]]
             The population from which to spawn this population, or a path leading to it. If None, the population will
             be generated randomly.
         """
@@ -67,6 +67,10 @@ class Population:
         ----------
         games : int
             The number of games each network should play.
+        include_elites : bool
+            Whether or not to make the elites play as well.
+        progress_bar : bool
+            Whether or not to display a tqdm progress bar.
         """
         networks = self.networks
         if include_elites:
@@ -79,13 +83,31 @@ class Population:
             n.play_multiple_games(games)
 
     def get_sorted_networks(self, include_elites):
-        """Sort the genepool in descending order by each network's average score."""
+        """Sort the population's networks in descending order by each network's average score.
+
+        Parameters
+        ----------
+        include_elites : bool
+            Whether or not to include the elites in the result.
+
+        Returns
+        -------
+        networks : List[NetworkPlayer]
+            The networks sorted by average score.
+        """
         networks = self.networks
         if include_elites:
             networks += self.elites
         networks.sort(key=lambda n: n.get_avg_score(), reverse=True)
         return networks
 
-    def save(self, filename):
-        with open(filename, 'wb') as f:
+    def save(self, path):
+        """Save the population to a file.
+
+        Parameters
+        ----------
+        path : str
+            The save path.
+        """
+        with open(path, 'wb') as f:
             pickle.dump(self, f)

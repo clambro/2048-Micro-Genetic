@@ -6,19 +6,16 @@ import numpy as np
 def run_micro_genetic_alg(num_generations, pop=None):
     """Run a micro-genetic algorithm to evolve a good neural network.
 
-    Each population defaults to 10 networks and plays 50 games. The top 2 from each generation are copied to the next
-    one, but all have the opportunity to reproduce. Every 10 generations, all but the top 2 are killed and 8 new
-    networks are randomly generated to add to the 2 that survived.
+    Each network plays 20 games, and the lowest half are removed from the population. Then 30 more games are played and
+    the lowest half are again removed. Finally, 250 more games are played to determine the true average score for each
+    remaining network. These go on to populate the next generation.
 
     Parameters
     ----------
-    final_gen : int
-        The total number of generations played is final_gen - initial_gen.  Recommended to be 10*n for positive integer
-        values of n.
-    initial_gen : int
-        The total number of generations played is final_gen - initial_gen
-    elite : List[int]
-        List of networks to copy directly into the new population.
+    num_generations : int
+        The total number of generations to run.
+    pop : Optional[Population]
+        Starting population. If None, one will be randomly generated.
 
     Returns
     -------
