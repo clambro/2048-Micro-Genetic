@@ -2,7 +2,7 @@ from game.action import DIRECTIONS
 import numpy as np
 
 
-HIDDEN_LAYER_SIZE = 256
+HIDDEN_LAYER_SIZE = 64
 NUM_HIDDEN_LAYERS = 2
 assert NUM_HIDDEN_LAYERS > 0
 
@@ -79,10 +79,10 @@ class Genome:
                                    for m, d in zip(mom.output_weights, dad.output_weights)])
 
         def mutate(array):
-            """Randomly flip or zero 1% of the bits."""
-            mutation = np.array([np.random.choice([0, -1])
-                                 if np.random.random() < 0.01 else 1 for _ in range(array.size)])
-            return array * mutation.reshape(array.shape)
+            """Randomly flip or zero ~1% of the bits."""
+            mutation = np.array([np.random.choice([-1, 0, 1])
+                                 if np.random.random() < 0.01 else i for i in array.reshape(-1)])
+            return mutation.reshape(array.shape)
 
         return mutate(input_weights), mutate(hidden_weights), mutate(output_weights)
 
@@ -105,3 +105,22 @@ class Genome:
             h = np.sign(h @ w)
         y = h @ self.output_weights  # No non-linearity needed. We only care about order.
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
+
+    def calculate_similarity(self, genome):
+        """
+
+        Parameters
+        ----------
+        genome
+
+        Returns
+        -------
+
+        """
+        w1 = np.hstack([self.input_weights.reshape(-1),
+                        self.hidden_weights.reshape(-1),
+                        self.output_weights.reshape(-1)])
+        w2 = np.hstack([genome.input_weights.reshape(-1),
+                        genome.hidden_weights.reshape(-1),
+                        genome.output_weights.reshape(-1)])
+        return np.mean(w1 == w2)

@@ -28,6 +28,10 @@ def run_micro_genetic_alg(num_generations, pop=None):
     top_network = None
     for gen in range(num_generations):
         pop = Population(pop)
+        if pop.similarity > 0.9:
+            print('Randomizing non-elite networks to improve diversity.')
+            pop.randomize_population()
+
         print(f'Playing games for generation {pop.generation} ({gen + 1} of {num_generations})')
 
         print('Playing first 20 games.')
@@ -40,8 +44,14 @@ def run_micro_genetic_alg(num_generations, pop=None):
         num_to_filter = NETS_PER_POP // 4 - len(pop.elites)
         pop.networks = pop.get_sorted_networks(include_elites=False)[:num_to_filter]
 
-        print('Playing final 250 games.')
-        pop.play_games(250, include_elites=False)
+        if not pop.elites:
+            print('Playing final 250 games to determine elites.')
+            pop.play_games(250, include_elites=False)
+        else:
+            n = pop.elites[0]
+            thresh = np.exp(np.mean(np.log(n.scores)) - 3 * np.std(np.log(n.scores))/np.sqrt(n.get_num_games_played()))
+            print(f'Playing 250 games for networks above {np.rint(thresh)}.')
+            pop.play_games(250, include_elites=False, thresh=thresh)
 
         if not pop.generation % 10 and pop.generation != 0:
             pop.save(f'Generation{pop.generation}.pkl')
