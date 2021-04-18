@@ -37,15 +37,17 @@ class NetworkPlayer(Player):
             self.genome = Genome()
 
     def calculate_similarity(self, net):
-        """
+        """Calculate the similarity between this network's genome and another.
 
         Parameters
         ----------
-        net
+        net : NetworkPlayer
+            The network to which this one will be compared.
 
         Returns
         -------
-
+        float
+            The percent similarity from 0 to 1.
         """
         return self.genome.calculate_similarity(net.genome)
 

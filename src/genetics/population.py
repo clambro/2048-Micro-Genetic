@@ -64,18 +64,24 @@ class Population:
         return [NetworkPlayer(gen=self.generation, mom=p[0], dad=p[1]) for p in parents]
 
     def _determine_similarity(self):
-        """"""
+        """Determine the mean similarity between all pairs of networks in the population.
+
+        Returns
+        -------
+        float
+            The mean similarity for the population as a number between 0 and 1.
+        """
         networks = self.networks + self.elites
         similarity = []
         for i, n1 in enumerate(networks):
             for n2 in networks[i+1:]:
                 similarity.append(n1.calculate_similarity(n2))
-        print(np.mean(similarity))
         return np.mean(similarity)
 
     def randomize_population(self):
-        """"""
+        """Randomize the non-elite networks without changing the total number and recalculate the similarity."""
         self.networks = [NetworkPlayer() for _ in self.networks]
+        self.similarity = self._determine_similarity()
 
     def play_games(self, games, include_elites, progress_bar=True, thresh=0):
         """Get each network in the population to play a certain number of games.

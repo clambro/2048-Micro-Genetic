@@ -2,8 +2,8 @@ from game.action import DIRECTIONS
 import numpy as np
 
 
-HIDDEN_LAYER_SIZE = 64
-NUM_HIDDEN_LAYERS = 2
+HIDDEN_LAYER_SIZE = 1024
+NUM_HIDDEN_LAYERS = 1
 assert NUM_HIDDEN_LAYERS > 0
 
 INPUT_WEIGHT_SHAPE = (16, HIDDEN_LAYER_SIZE)
@@ -107,20 +107,18 @@ class Genome:
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
 
     def calculate_similarity(self, genome):
-        """
+        """Calculate the similarity (percent of equal weights) between this genome and another.
 
         Parameters
         ----------
-        genome
+        genome : Genome
+            The genome to which this one will be compared.
 
         Returns
         -------
-
+        float
+            The percent similarity from 0 to 1.
         """
-        w1 = np.hstack([self.input_weights.reshape(-1),
-                        self.hidden_weights.reshape(-1),
-                        self.output_weights.reshape(-1)])
-        w2 = np.hstack([genome.input_weights.reshape(-1),
-                        genome.hidden_weights.reshape(-1),
-                        genome.output_weights.reshape(-1)])
+        w1 = np.hstack([w.reshape(-1) for w in (self.input_weights, self.hidden_weights, self.output_weights)])
+        w2 = np.hstack([w.reshape(-1) for w in (genome.input_weights, genome.hidden_weights, genome.output_weights)])
         return np.mean(w1 == w2)

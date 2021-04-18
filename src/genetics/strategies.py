@@ -6,9 +6,10 @@ import numpy as np
 def run_micro_genetic_alg(num_generations, pop=None):
     """Run a micro-genetic algorithm to evolve a good neural network.
 
-    Each network plays 20 games, and the lowest half are removed from the population. Then 30 more games are played and
-    the lowest half are again removed. Finally, 250 more games are played to determine the true average score for each
-    remaining network. These go on to populate the next generation.
+    Each network plays 20 games and the weakest half are removed from the population. Then 30 more games are played and
+    the weakest half are again removed. Finally,  for each remaining network whose average score is in range of the
+    elite network's lower bound, 250 more games are played. The top networks then go on to populate the next generation.
+    If the average network similarity gets too high, all non-elite networks are randomized.
 
     Parameters
     ----------
@@ -28,7 +29,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
     top_network = None
     for gen in range(num_generations):
         pop = Population(pop)
-        if pop.similarity > 0.9:
+        if pop.similarity > 0.95:
             print('Randomizing non-elite networks to improve diversity.')
             pop.randomize_population()
 
@@ -48,8 +49,9 @@ def run_micro_genetic_alg(num_generations, pop=None):
             print('Playing final 250 games to determine elites.')
             pop.play_games(250, include_elites=False)
         else:
-            n = pop.elites[0]
-            thresh = np.exp(np.mean(np.log(n.scores)) - 3 * np.std(np.log(n.scores))/np.sqrt(n.get_num_games_played()))
+            elite = pop.elites[0]
+            log_st_err = np.std(np.log(elite.scores)) / np.sqrt(elite.get_num_games_played())
+            thresh = elite.get_avg_score() / np.exp(3 * log_st_err)  # Approximate 99% lower bound.
             print(f'Playing 250 games for networks above {np.rint(thresh)}.')
             pop.play_games(250, include_elites=False, thresh=thresh)
 
@@ -65,7 +67,8 @@ def run_micro_genetic_alg(num_generations, pop=None):
 
     plt.figure()
     plt.title('log_2(Highest Score)')
-    plt.plot(np.log2(top_scores))
+    plt.semilogy(np.log2(top_scores))
+    plt.savefig('scores_per_generation.png')
 
     pop.save(f'Generation{pop.generation}.pkl')
 
