@@ -1,4 +1,7 @@
 ## 2048 With Neural Nets and a Micro-Genetic Algorithm ##
+
+###\*\*This readme is out of date as the repo is under active development** ###
+
 ### Quick Description ###
 I built a simplified version of 2048 in Python and trained a neural network to play it using a micro-genetic algorithm.  The trained network significantly outperformed both random movement and movement following a very simple strategy.
 
