@@ -1,7 +1,9 @@
 from game.action import Action, DIRECTIONS
 from game.game import Game
+import matplotlib.pyplot as plt
 import numpy as np
 import unittest
+from unittest.mock import patch
 
 
 class TestGame(unittest.TestCase):
@@ -151,6 +153,16 @@ class TestGame(unittest.TestCase):
         self.assertEqual(g.highest_tile, 2**15)
         self.assertEqual(g.score, 0)
         self.assertTrue(g.game_over)
+
+    @patch('matplotlib.pyplot.show')
+    @patch('matplotlib.pyplot.pause')
+    def test_display(self, pause_mock, show_mock):
+        """Test that it runs without error with and without axes."""
+        g = Game()
+        ax = g.display_board()
+        g.display_board(ax)
+        self.assertEqual(pause_mock.call_count, 3)
+        show_mock.assert_called_once()
 
 
 if __name__ == '__main__':
