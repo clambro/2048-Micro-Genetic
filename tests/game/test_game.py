@@ -1,6 +1,5 @@
 from game.action import Action, DIRECTIONS
 from game.game import Game
-import matplotlib.pyplot as plt
 import numpy as np
 import unittest
 from unittest.mock import patch
@@ -68,20 +67,8 @@ class TestGame(unittest.TestCase):
         self.assertEqual(g.score, 0)
         self.assertIn(g.highest_tile, [2, 4])
 
-    @staticmethod
-    def set_up_for_move_test(direction):
-        """Helper function to set up a board for testing directional moves"""
-        g = Game()
-        g.board = np.array([[0, 1, 0, 0],
-                            [2, 2, 0, 2],
-                            [1, 2, 0, 0],
-                            [1, 0, 1, 0]])
-        np.random.seed(2112)
-        g.move(direction)
-        return g
-
     def test_move_left(self):
-        g = self.set_up_for_move_test(Action.LEFT)
+        g = self._set_up_for_move_test(Action.LEFT)
         correct_board = np.array([[1, 0, 0, 0],
                                   [3, 2, 0, 0],
                                   [1, 2, 0, 1],  # New tile added here based on seed.
@@ -92,7 +79,7 @@ class TestGame(unittest.TestCase):
         self.assertFalse(g.game_over)
 
     def test_move_right(self):
-        g = self.set_up_for_move_test(Action.RIGHT)
+        g = self._set_up_for_move_test(Action.RIGHT)
         correct_board = np.array([[0, 0, 0, 1],
                                   [0, 0, 2, 3],
                                   [0, 1, 1, 2],  # New tile added here based on seed.
@@ -103,7 +90,7 @@ class TestGame(unittest.TestCase):
         self.assertFalse(g.game_over)
 
     def test_move_up(self):
-        g = self.set_up_for_move_test(Action.UP)
+        g = self._set_up_for_move_test(Action.UP)
         correct_board = np.array([[2, 1, 1, 2],
                                   [2, 3, 0, 0],
                                   [0, 0, 0, 0],
@@ -114,7 +101,7 @@ class TestGame(unittest.TestCase):
         self.assertFalse(g.game_over)
 
     def test_move_down(self):
-        g = self.set_up_for_move_test(Action.DOWN)
+        g = self._set_up_for_move_test(Action.DOWN)
         correct_board = np.array([[0, 0, 0, 0],
                                   [0, 0, 1, 0],  # New tile added here based on seed.
                                   [2, 1, 0, 0],
@@ -123,6 +110,18 @@ class TestGame(unittest.TestCase):
         self.assertEqual(g.highest_tile, 8)
         self.assertEqual(g.score, 12)
         self.assertFalse(g.game_over)
+
+    @staticmethod
+    def _set_up_for_move_test(direction):
+        """Helper function to set up a board for testing directional moves"""
+        g = Game()
+        g.board = np.array([[0, 1, 0, 0],
+                            [2, 2, 0, 2],
+                            [1, 2, 0, 0],
+                            [1, 0, 1, 0]])
+        np.random.seed(2112)
+        g.move(direction)
+        return g
 
     def test_move_illegal(self):
         g = Game()
