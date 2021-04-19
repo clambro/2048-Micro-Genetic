@@ -106,7 +106,7 @@ class Population:
         else:
             iterator = networks
         for n in iterator:
-            n.play_multiple_games(games)
+            n.play_multiple_games(games, progress_bar=False)
 
     def get_sorted_networks(self, include_elites):
         """Sort the population's networks in descending order by each network's average score.

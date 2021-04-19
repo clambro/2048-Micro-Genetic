@@ -78,7 +78,7 @@ class Player(ABC):
         self.scores.append(game.score)
         self.highest_tiles.append(game.highest_tile)
 
-    def play_multiple_games(self, num_games, progress_bar=False):
+    def play_multiple_games(self, num_games, progress_bar=True):
         """Play multiple games without graphics, with an optional tqdm progress bar.
 
         Parameters
