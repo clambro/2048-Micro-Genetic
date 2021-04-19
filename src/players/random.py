@@ -1,5 +1,5 @@
-from players.base import Player
 import numpy as np
+from players.base import Player
 
 
 class RandomPlayer(Player):
