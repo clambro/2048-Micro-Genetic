@@ -37,8 +37,7 @@ class ManualPlayer(Player):
         """
         raise TypeError('Multiple games without graphics cannot be played manually.')
 
-    @staticmethod
-    def _choose_action(game):
+    def _choose_action(self, game):
         """Reads an action from keyboard inputs.
 
         Parameters

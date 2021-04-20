@@ -7,7 +7,6 @@ import unittest
 
 class TestGreedyPlayer(unittest.TestCase):
     def setUp(self):
-        """Instantiates an abstract player class by removing its abstract methods through a patch."""
         self.player = GreedyPlayer()
         self.game = Game()
 
