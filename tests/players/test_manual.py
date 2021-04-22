@@ -11,7 +11,7 @@ class TestManualPlayer(unittest.TestCase):
     def test_play_multiple_games(self):
         with self.assertRaises(TypeError) as e:
             ManualPlayer().play_multiple_games(5)
-        self.assertIn('Multiple games without graphics cannot be played manually.!', str(e.exception))
+        self.assertIn('Multiple games without graphics cannot be played manually.', str(e.exception))
 
 
 if __name__ == '__main__':
