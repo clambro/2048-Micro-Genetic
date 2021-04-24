@@ -1,5 +1,4 @@
-from game.action import Action, DIRECTIONS
-from game.game import Game
+from game import Action, DIRECTIONS, Game
 import numpy as np
 import unittest
 from unittest.mock import patch

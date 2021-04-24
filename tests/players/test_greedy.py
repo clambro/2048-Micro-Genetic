@@ -1,7 +1,6 @@
-from game.action import Action
-from game.game import Game
+from game import Action, Game
 import numpy as np
-from players.greedy import GreedyPlayer
+from players import GreedyPlayer
 import unittest
 
 

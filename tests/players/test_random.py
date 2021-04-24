@@ -1,4 +1,4 @@
-from players.random import RandomPlayer
+from players import RandomPlayer
 import unittest
 
 

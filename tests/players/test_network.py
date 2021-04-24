@@ -1,4 +1,4 @@
-from players.network import NetworkPlayer
+from players import NetworkPlayer
 import unittest
 
 

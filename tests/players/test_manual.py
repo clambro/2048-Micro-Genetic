@@ -1,4 +1,4 @@
-from players.manual import ManualPlayer
+from players import ManualPlayer
 import unittest
 
 
