@@ -1,5 +1,5 @@
 from copy import deepcopy
-from game.action import Action
+from game import Action
 import numpy as np
 from players.base import Player
 

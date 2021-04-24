@@ -1,6 +1,6 @@
 from copy import copy
 import pickle
-from players.network import NetworkPlayer
+from players import NetworkPlayer
 import numpy as np
 from tqdm import tqdm
 

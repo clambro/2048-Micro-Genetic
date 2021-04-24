@@ -1,4 +1,4 @@
-from genetics.genome import Genome
+from genetics import Genome
 from players.base import Player
 
 

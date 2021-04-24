@@ -1,4 +1,4 @@
-from game.action import Action
+from game import Action
 from players.base import Player
 
 

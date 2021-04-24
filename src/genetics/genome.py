@@ -1,4 +1,4 @@
-from game.action import DIRECTIONS
+from game import DIRECTIONS
 import numpy as np
 
 

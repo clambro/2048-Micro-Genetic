@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from game.action import Action
-from game.game import Game
+from game import Action, Game
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import trange
