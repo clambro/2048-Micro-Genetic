@@ -1,4 +1,4 @@
-from genetics.population import Population, NETS_PER_POP, NUM_ELITE
+from genetics.population import Population, NETS_PER_POP
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -7,9 +7,9 @@ def run_micro_genetic_alg(num_generations, pop=None):
     """Run a micro-genetic algorithm to evolve a good neural network.
 
     Each network plays 20 games and the weakest half are removed from the population. Then 30 more games are played and
-    the weakest half are again removed. Finally,  for each remaining network whose average score is in range of the
+    the weakest half are again removed. Finally, for each remaining network whose average score is in range of the
     elite network's lower bound, 250 more games are played. The top networks then go on to populate the next generation.
-    If the average network similarity gets too high, all non-elite networks are randomized.
+    Every 30 generations, all non-elite networks are randomized to improve diversity.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
     top_network = None
     for gen in range(num_generations):
         pop = Population(pop)
-        if pop.similarity > 0.95:
+        if not gen % 30 and gen > 0:
             print('Randomizing non-elite networks to improve diversity.')
             pop.randomize_population()
 
@@ -51,7 +51,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
         else:
             elite = pop.elites[0]
             log_st_err = np.std(np.log(elite.scores)) / np.sqrt(elite.get_num_games_played())
-            thresh = elite.get_avg_score() / np.exp(3 * log_st_err)  # Approximate 99% lower bound.
+            thresh = elite.get_avg_score() / np.exp(2 * log_st_err)  # Approximate lower bound of score estimate.
             print(f'Playing 250 games for networks above {np.rint(thresh)}.')
             pop.play_games(250, include_elites=False, thresh=thresh)
 
@@ -66,8 +66,10 @@ def run_micro_genetic_alg(num_generations, pop=None):
         print('Best network\'s highest tile =', np.rint(top_network.get_avg_highest_tile()), '\n')
 
     plt.figure()
-    plt.title('log_2(Highest Score)')
-    plt.semilogy(np.log2(top_scores))
+    plt.title('Network Improvement vs Generation')
+    plt.xlabel('Log Generation')
+    plt.ylabel('Log Highest Score')
+    plt.loglog(top_scores)
     plt.savefig('scores_per_generation.png')
 
     pop.save(f'Generation{pop.generation}.pkl')
