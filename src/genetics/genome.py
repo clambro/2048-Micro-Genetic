@@ -108,7 +108,7 @@ class Genome:
         return np.asarray(DIRECTIONS)[y.argsort()[::-1]]
 
     def calculate_similarity(self, genome):
-        """Calculate the similarity (percent of equal weights) between this genome and another.
+        """Calculate the similarity (percentage of equal weights) between this genome and another.
 
         Parameters
         ----------
