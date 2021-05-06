@@ -29,10 +29,10 @@ class Population:
 
         Parameters
         ----------
-        num_nets : int
-            The total number of networks in the population on creation.
-        num_elite : int
-            The number of elite networks to pass directly to the next population.
+        num_nets : Optional[int]
+            The total number of networks in the population on creation. Overwritten by pop.
+        num_elite : Optional[int]
+            The number of elite networks to pass directly to the next population. Overwritten by pop.
         pop : Optional[Union[Population, str]]
             The population from which to spawn this population, or a path leading to it. If None, the population will
             be generated randomly. Overwrites the given num_net and num_elite parameters to match it.
@@ -88,7 +88,7 @@ class Population:
                 similarity.append(n1.calculate_similarity(n2))
         return np.mean(similarity)
 
-    def randomize_population(self):
+    def randomize(self):
         """Randomize the non-elite networks without changing the total number and recalculate the similarity."""
         self.networks = [NetworkPlayer() for _ in self.networks]
         self.similarity = self._determine_similarity()

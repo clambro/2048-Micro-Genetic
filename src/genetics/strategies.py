@@ -35,7 +35,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
         pop = Population(NETS_PER_POP, NUM_ELITE, pop)
         if not gen % 30 and gen > 0:
             print('Randomizing non-elite networks to improve diversity.')
-            pop.randomize_population()
+            pop.randomize()
 
         print(f'Playing games for generation {pop.generation} ({gen + 1} of {num_generations})')
 
