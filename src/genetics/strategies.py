@@ -1,6 +1,10 @@
-from genetics.population import Population, NETS_PER_POP
+from genetics.population import Population
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+NETS_PER_POP = 32
+NUM_ELITE = 1
 
 
 def run_micro_genetic_alg(num_generations, pop=None):
@@ -28,7 +32,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
     top_scores = []
     top_network = None
     for gen in range(num_generations):
-        pop = Population(pop)
+        pop = Population(NETS_PER_POP, NUM_ELITE, pop)
         if not gen % 30 and gen > 0:
             print('Randomizing non-elite networks to improve diversity.')
             pop.randomize_population()

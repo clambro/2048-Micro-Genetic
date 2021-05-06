@@ -2,7 +2,7 @@ from genetics.genome import Genome
 import unittest
 
 
-class TestNetworkPlayer(unittest.TestCase):
+class TestGenome(unittest.TestCase):
     def test_similarity(self):
         genome = Genome()
         self.assertEqual(genome.calculate_similarity(genome), 1)
