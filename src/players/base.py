@@ -57,6 +57,17 @@ class Player(ABC):
         """
         return len(self.scores)
 
+    def print_summary(self):
+        """Print a summary of the player's performance."""
+        tiles, counts = np.unique(self.highest_tiles, return_counts=True)
+        percents = np.round(100 * counts / np.sum(counts), 1)
+        print('Highest Tile Achieved')
+        for t, p in zip(tiles, percents):
+            print(f'{t}\t{p}%')
+        print(f'Average Tile  = {int(np.rint(self.get_avg_highest_tile()))}')
+        print(f'Average Score = {int(np.rint(self.get_avg_score()))}')
+        print(f'Games Played  = {self.get_num_games_played()}')
+
     def play_game(self, display):
         """Play a game with optional graphics and add the results to the player's stats.
 

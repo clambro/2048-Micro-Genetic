@@ -29,6 +29,16 @@ class TestPlayer(unittest.TestCase):
         self.player.scores = [10, 100, 1000]
         self.assertEqual(self.player.get_num_games_played(), 3)
 
+    @patch('players.base.Player.__abstractmethods__', set())
+    @patch('builtins.print')
+    def test_print_summary(self, mock_print):
+        # Just test that no exception is thrown. Patch print to avoid messy output.
+        p = Player()
+        p.print_summary()
+        p.scores = [100, 1000, 200]
+        p.highest_tiles = [32, 64, 32]
+        p.print_summary()
+
 
 if __name__ == '__main__':
     unittest.main()
