@@ -33,7 +33,7 @@ def run_micro_genetic_alg(num_generations, pop=None):
     top_network = None
     for gen in range(num_generations):
         pop = Population(NETS_PER_POP, NUM_ELITE, pop)
-        if not gen % 30 and gen > 0:
+        if not gen % 20 and gen > 0:
             print('Randomizing non-elite networks to improve diversity.')
             pop.randomize()
 

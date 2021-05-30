@@ -70,7 +70,9 @@ class Population:
         List[NetworkPlayer]
             The networks for the current population.
         """
-        parents = [np.random.choice(parents, 2, replace=False) for _ in range(self.num_nets - self.num_elite)]
+        prob = np.arange(len(parents), 0, -1)
+        prob = prob / np.sum(prob)
+        parents = [np.random.choice(parents, 2, replace=False, p=prob) for _ in range(self.num_nets - self.num_elite)]
         return [NetworkPlayer(gen=self.generation, mom=p[0], dad=p[1]) for p in parents]
 
     def _determine_similarity(self):
