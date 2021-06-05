@@ -15,7 +15,7 @@ This gives a more meaningful notion of averages for exponentially growing scores
 
 
 ### The Baseline ###
-To get an idea of how well the trained net performs, we need something to compare it to.  Starting with a random algorithm, I played 10,000 games moving in each legal direction with equal probability and got an average score of 965.  I then played another 10,000 games using an algorithm that tries to push tiles to the bottom-right corner, which is closer to the "correct" 2048 strategy and unsurprisingly performed better with an average score of 2491.  Finally, I played 10,000 games with a greedy algorithm which always chooses whichever move maximizes its score each turn.  This performed slightly better still with an average score of 2696.  The table below summarizes these results:
+To get an idea of how well the trained net performs, we need something to compare it to.  Starting with a random algorithm, I played 10,000 games moving in each legal direction with equal probability and got an average score of 965.  I then played another 10,000 games using an algorithm that tries to push tiles to the bottom-right corner, which is closer to the "correct" 2048 strategy, and unsurprisingly performed better with an average score of 2491.  Finally, I played 10,000 games with a greedy algorithm which always chooses whichever move maximizes its score each turn.  This performed slightly better still with an average score of 2696.  The table below summarizes these results:
 
 Highest Tile at Game Over | Random  | Corner   | Greedy
 :------------------------:|:-------:|:--------:|:------
@@ -53,22 +53,24 @@ Thus completes the first generation.  For future generations, the best network f
 ### The Results ###
 I trained a population of networks for 2000 generations.  The following is a log-log plot of the best net's average score at each generation:
 
-![Evolution of Scores](misc/scores2000generations.png)
+![Evolution of Scores](misc/scores_per_generation.png)
 
 Before we discuss this image, let's also perform a more quantitative examination.  Taking the best network from the 2000th generation and playing 10,000 games with it gives the results in the table below, which I've compared to the baselines we established earlier:
 
 Highest Tile at Game Over | Random  | Corner   | Greedy   | Network
 :------------------------:|:-------:|:--------:|:---------|:-------
 16                        | 0.3%    |          |          | 
-32                        | 7.0%    | 0.2%     | 0.2%     | 
-64                        | 38.0%   | 7.3%     | 4.6%     | 
-128                       | 46.8%   | 40.9%    | 34.9%    | 
-256                       | 7.9%    | 42.5%    | 47.0%    | 
-512                       |         | 9.0%     | 13.1%    | 
-1024                      |         |          | 0.2%     | 
-**Average Score**         | **965** | **2491** | **2696** | **____**
+32                        | 7.0%    | 0.2%     | 0.2%     | 0.3%
+64                        | 38.0%   | 7.3%     | 4.6%     | 4.6%
+128                       | 46.8%   | 40.9%    | 34.9%    | 22.1%
+256                       | 7.9%    | 42.5%    | 47.0%    | 51.1%
+512                       |         | 9.0%     | 13.1%    | 21.5%
+1024                      |         |          | 0.2%     | 0.4%
+**Average Score**         | **965** | **2491** | **2696** | **3191**
 
-We have a clear and significant improvement, though the elusive 2048 tile continues to escape us.  I tried a few different network architectures and strategies, but all gave approximately the same performance.  Still, the improved performance, though not as dramatic as I'd hoped for, is enough for me to consider this a successful experiment.
+We have a clear improvement, though the elusive 2048 tile continues to escape us.  The trained network quickly beat out the baselines, but stagnated around generation 1000 and saw no improvement from there.  I tried a few different network architectures and strategies, but all gave approximately the same performance.  Some of my past, unsaved runs did better, but not by much.  Still, the improved performance, though not as dramatic as I'd hoped for, is enough for me to consider this a successful experiment.
+
+Note: The average score in the table is lower than the average score in the chart because playing only 300 games during training overestimated the true average.
 
 
 ### Conclusion ###

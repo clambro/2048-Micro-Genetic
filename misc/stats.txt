@@ -37,4 +37,14 @@ Average Score = 2696
 Games Played  = 10000
 
 
-Trained Network:
+Trained Network:Highest Tile Achieved
+16	0.0%
+32	0.3%
+64	4.6%
+128	22.1%
+256	51.1%
+512	21.5%
+1024	0.4%
+Average Tile  = 239
+Average Score = 3191
+Games Played  = 10000
