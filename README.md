@@ -15,7 +15,7 @@ This gives a more meaningful notion of averages for exponentially growing scores
 
 
 ### The Baseline ###
-To get an idea of how well the trained net performs, we need something to compare it to.  Starting with a random algorithm, I played 10,000 games moving in each legal direction with equal probability and got an average score of 965.  I then played another 10,000 games using an algorithm that tries to push tiles to the bottom-right corner, which is closer to the "correct" 2048 strategy, and unsurprisingly performed better with an average score of 2491.  Finally, I played 10,000 games with a greedy algorithm which always chooses whichever move maximizes its score each turn.  This performed slightly better still with an average score of 2696.  The table below summarizes these results:
+To get an idea of how well the trained network performs, we need something to compare it to.  Starting with a random algorithm, I played 10,000 games moving in each legal direction with equal probability and got an average score of 965.  I then played another 10,000 games using an algorithm that tries to push tiles to the bottom-right corner, which is closer to the "correct" 2048 strategy, and unsurprisingly performed better with an average score of 2491.  Finally, I played 10,000 games with a greedy algorithm which always chooses whichever move maximizes its score each turn.  This performed slightly better still with an average score of 2696.  The table below summarizes these results:
 
 Highest Tile at Game Over | Random  | Corner   | Greedy
 :------------------------:|:-------:|:--------:|:------
