@@ -64,8 +64,8 @@ class Player(ABC):
         print('Highest Tile Achieved')
         for t, p in zip(tiles, percents):
             print(f'{t}\t{p}%')
-        print(f'Average Tile  = {int(np.rint(self.get_avg_highest_tile()))}')
-        print(f'Average Score = {int(np.rint(self.get_avg_score()))}')
+        print(f'Average Tile  = {np.rint(self.get_avg_highest_tile()).astype(int)}')
+        print(f'Average Score = {np.rint(self.get_avg_score()).astype(int)}')
         print(f'Games Played  = {self.get_num_games_played()}')
 
     def play_game(self, display):
