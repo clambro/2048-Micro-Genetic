@@ -71,8 +71,8 @@ def run_micro_genetic_alg(num_generations, pop=None):
 
     plt.figure()
     plt.title('Network Improvement vs Generation')
-    plt.xlabel('Log Generation')
-    plt.ylabel('Log Highest Score')
+    plt.xlabel('Generation')
+    plt.ylabel('Highest Score')
     plt.loglog(top_scores)
     plt.savefig('scores_per_generation.png')
 
